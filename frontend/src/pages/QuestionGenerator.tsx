@@ -14,6 +14,7 @@ interface Chapter {
 
 interface StoredPaper {
   id: number;
+  subject_id: number;
   title: string;
   created_at: string;
 }
@@ -21,6 +22,7 @@ interface StoredPaper {
 const QuestionGenerator = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
+  const [filterSubject, setFilterSubject] = useState<number | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
   const [difficulty, setDifficulty] = useState('Medium');
@@ -37,6 +39,7 @@ const QuestionGenerator = () => {
     long: 2,
     numerical: 0
   });
+  const [showAnswers, setShowAnswers] = useState(false);
 
   useEffect(() => {
     axios.get('/api/subjects').then(res => setSubjects(res.data));
@@ -95,6 +98,7 @@ const QuestionGenerator = () => {
         questionTypes
       });
       setGeneratedPaper(res.data);
+      fetchStoredPapers();
     } catch (error: any) {
       console.error('Generation failed', error);
       const errorMessage = error.response?.data?.error || 'Failed to generate questions. Please try again.';
@@ -138,8 +142,30 @@ const QuestionGenerator = () => {
                 <h2 className='font-bold text-lg flex items-center gap-2'>
                   <Layout className='w-5 h-5' /> Available Papers
                 </h2>
-                <p className='text-sm text-gray-500'>Select a pre-generated annual examination paper.</p>
                 
+                <div>
+                  <label className='block font-bold mb-2 text-sm'>Filter by Subject</label>
+                  <select 
+                    className='w-full p-2 border rounded-md'
+                    onChange={e => setFilterSubject(Number(e.target.value) || null)}
+                    value={filterSubject || ''}
+                  >
+                    <option value=''>All Subjects</option>
+                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className='flex items-center gap-2 cursor-pointer font-bold text-sm'>
+                    <input 
+                      type='checkbox'
+                      checked={showAnswers}
+                      onChange={e => setShowAnswers(e.target.checked)}
+                    />
+                    Include Answer Key
+                  </label>
+                </div>
+
                 <div className='space-y-2 max-h-[600px] overflow-y-auto'>
                   {storedPapers.length === 0 ? (
                     <div className='text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed'>
@@ -147,7 +173,9 @@ const QuestionGenerator = () => {
                       <p className='text-xs mt-2'>Run the generation script on the server.</p>
                     </div>
                   ) : (
-                    storedPapers.map(paper => (
+                    storedPapers
+                      .filter(p => !filterSubject || p.subject_id === filterSubject)
+                      .map(paper => (
                       <button
                         key={paper.id}
                         onClick={() => loadPaper(paper.id)}
@@ -178,7 +206,21 @@ const QuestionGenerator = () => {
 
                 {selectedSubject && (
                   <div>
-                    <label className='block font-bold mb-2'>2. Select Chapters</label>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className='block font-bold'>2. Select Chapters</label>
+                      <button 
+                        onClick={() => {
+                          if (selectedChapters.length === chapters.length) {
+                            setSelectedChapters([]);
+                          } else {
+                            setSelectedChapters(chapters.map(c => c.id));
+                          }
+                        }}
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        {selectedChapters.length === chapters.length ? 'Deselect All' : 'Select Full Syllabus'}
+                      </button>
+                    </div>
                     <div className='max-h-48 overflow-y-auto border rounded-md p-2 space-y-2'>
                       {chapters.map(chapter => (
                         <label key={chapter.id} className='flex items-start gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded'>
@@ -255,6 +297,17 @@ const QuestionGenerator = () => {
                   </div>
                 </div>
 
+                <div>
+                  <label className='flex items-center gap-2 cursor-pointer font-bold'>
+                    <input 
+                      type='checkbox'
+                      checked={showAnswers}
+                      onChange={e => setShowAnswers(e.target.checked)}
+                    />
+                    Include Answer Key
+                  </label>
+                </div>
+
                 <button 
                   onClick={handleGenerate}
                   disabled={loading || !selectedSubject || selectedChapters.length === 0}
@@ -315,6 +368,11 @@ const QuestionGenerator = () => {
                               </div>
                               <span className='font-bold text-sm'>[{q.marks || 1}]</span>
                             </div>
+                            {showAnswers && q.answer && (
+                              <div className='mt-2 p-2 bg-green-50 border border-green-100 rounded text-sm text-green-800'>
+                                <span className='font-bold'>Answer:</span> {q.answer}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -370,6 +428,11 @@ const QuestionGenerator = () => {
                           </div>
                           <span className='font-bold text-sm'>[{q.marks || 1}]</span>
                         </div>
+                        {showAnswers && q.answer && (
+                          <div className='mt-2 text-sm font-semibold text-gray-700'>
+                            Answer: {q.answer}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -72,6 +72,16 @@ Do not include any preamble or conversational text, just the JSON.
 
         try {
             const parsedData = JSON.parse(cleanJson.trim());
+
+            // Save generated paper to database
+            const title = parsedData.title || `${subject.name} Practice Paper`;
+            await db.run(
+                'INSERT INTO question_papers (subject_id, title, content) VALUES (?, ?, ?)',
+                subjectId,
+                title,
+                JSON.stringify(parsedData)
+            );
+
             res.json(parsedData);
         } catch (e) {
             console.error("Failed to parse AI JSON:", cleanJson);
@@ -88,7 +98,7 @@ Do not include any preamble or conversational text, just the JSON.
 export const getStoredPapers = async (req: Request, res: Response) => {
     try {
         const db = await getDb();
-        const papers = await db.all('SELECT id, title, created_at FROM question_papers ORDER BY created_at DESC');
+        const papers = await db.all('SELECT id, subject_id, title, created_at FROM question_papers ORDER BY created_at DESC');
         res.json(papers);
     } catch (error) {
         console.error('Error fetching papers:', error);
