@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "seed:annual": "ts-node src/scripts/seedAnnualPapers.ts",
+    "seed:chapters": "ts-node src/scripts/seedChapterQuestions.ts",
+    "generate:annual": "ts-node src/scripts/generateAnnualPapers.ts"
   },
   "dependencies": {
     "axios": "^1.4.0",

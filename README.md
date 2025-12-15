@@ -5,9 +5,11 @@ LearnNest is a personal web application designed to help Class 6 ICSE students g
 ## Features
 
 - **AI Question Generator**: Create custom question papers (MCQs, Short/Long Answer) based on specific chapters and difficulty levels.
+- **Pre-Generated Papers**: Access a library of Annual Examination papers and Chapter-wise practice papers stored in the database.
+- **Answer Keys**: Toggle answer keys for both generated and stored papers for easy self-evaluation.
 - **Syllabus Manager**: Keep track of chapters and syllabus details for all subjects.
 - **Document Vault**: Store and organize homework, circulars, and exam notices.
-- **Student-Friendly UI**: Simple, distraction-free interface.
+- **Student-Friendly UI**: Simple, distraction-free interface with subject filtering and full syllabus selection.
 - **Local & Private**: Runs locally on your computer. No data tracking.
 
 ## Tech Stack
@@ -53,9 +55,16 @@ LearnNest is a personal web application designed to help Class 6 ICSE students g
     # AI_MODEL=mistral
     ```
 
+    **Seed Database (Optional but Recommended):**
+    Populate the database with pre-defined annual and chapter-wise papers:
+    ```bash
+    npm run seed:annual
+    npm run seed:chapters
+    ```
+
 3.  **Setup Frontend**
     ```bash
-    cd ../frontend
+    cd ..
     npm install
     ```
 
@@ -71,7 +80,7 @@ You need to run both the server and the frontend.
 
 2.  **Start Frontend** (Terminal 2)
     ```bash
-    cd frontend
+    # From the root directory
     npm run dev
     ```
 
@@ -83,6 +92,7 @@ The application uses Large Language Models (LLMs) to generate questions.
 - **Prompt Engineering**: We construct a detailed prompt including the subject, selected chapters, syllabus context, and difficulty level.
 - **Context**: The syllabus text you enter for each chapter is sent to the AI to ensure questions are relevant.
 - **Output**: The AI returns a structured JSON format which the app renders into a printable paper.
+- **Storage**: Generated papers are automatically saved to the database for future reference.
 
 ## Adding Subjects/Classes
 
@@ -95,5 +105,5 @@ To add more:
 ## Troubleshooting
 
 - **AI Error**: If using HuggingFace, ensure your API key is correct. If using Ollama, ensure the Ollama app is running and you have pulled the model (`ollama pull mistral`).
-- **Database**: If you want to reset the data, delete the `learnnest.sqlite` file in the root folder and restart the server.
+- **Database**: If you want to reset the data, delete the `learnnest.sqlite` file in the `server` folder and restart the server.
 
