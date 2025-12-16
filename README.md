@@ -219,40 +219,56 @@ The `validate:math` script uses AI to ensure question quality:
 - ✨ Re-validates regenerated questions to ensure quality
 - 📊 Provides detailed reports of all changes
 
-**Setup Ollama (Free, Local AI - No API Key Required):**
+**AI Setup Options:**
+
+#### Option 1: OpenAI (Recommended for Development - Fast ⚡)**
+
+**Speed**: 10-50x faster than Ollama | **Cost**: ~$0.05-0.10 to fix 123 questions
+
+1. Get API key from: https://platform.openai.com/api-keys
+2. Create `server/.env` file:
+   ```env
+   AI_PROVIDER=openai
+   OPENAI_API_KEY=sk-your-key-here
+   AI_MODEL=gpt-4o-mini
+   ```
+3. Run scripts normally - will use OpenAI automatically
+
+**Pricing**: 
+- gpt-4o-mini: $0.15 per 1M input tokens, $0.60 per 1M output tokens
+- Fixing 123 questions: ~$0.05-0.10 total
+- Validating all papers: ~$0.02-0.05
+
+#### Option 2: Ollama (Free, Local - Slow 🐢)**
+
+**Speed**: Slower but free | **Cost**: $0 (runs on your machine)
 
 1. **Install Ollama**
    - Download from: https://ollama.ai/download
    - Install for Windows/Mac/Linux
    
 2. **Pull a model** (one-time setup)
-   Choose one of these models:
    ```bash
-   # Option 1: Llama 3.2 (Recommended - Fast and accurate)
-   ollama pull llama3.2
-   
-   # Option 2: Phi 3 (Smaller, faster, good for older computers)
-   ollama pull phi3
-   
-   # Option 3: Gemma 2 (Google's model, very capable)
-   ollama pull gemma2
-   
-   # Option 4: Qwen 2.5 (Alibaba's model, excellent reasoning)
-   ollama pull qwen2.5
+   # Recommended models:
+   ollama pull llama3.2    # Best balance
+   ollama pull phi3        # Faster, lighter
+   ollama pull gemma2      # Google's model
+   ollama pull qwen2.5     # Excellent reasoning
    ```
    
-3. **Verify it's running**
-   ```bash
-   ollama list
-   ```
-
-4. **(Optional) Configure in `.env`**
+3. **Configure in `server/.env`**
    ```env
+   AI_PROVIDER=ollama
    AI_MODEL=llama3.2
    OLLAMA_BASE_URL=http://localhost:11434
    ```
 
-That's it! Ollama is completely free, runs locally, and requires no API keys or internet after initial model download.
+4. **Verify it's running**
+   ```bash
+   ollama list
+   ```
+
+**Recommendation**: Use OpenAI for development/fixing (fast), switch to Ollama for production if needed (free).
 
 ## Future Feature Ideas
 
