@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Download, Loader2, FileText, PenTool, Layout } from 'lucide-react';
+import { Download, Loader2, FileText, PenTool, Layout, FileDown, Key } from 'lucide-react';
 
 interface Subject {
   id: number;
@@ -17,6 +17,20 @@ interface StoredPaper {
   subject_id: number;
   title: string;
   created_at: string;
+  variant_set_id?: string;
+  variant_label?: string;
+}
+
+interface DownloadingState {
+  paper: boolean;
+  answerKey: boolean;
+}
+
+interface GeneratedVariant {
+  paperId: number;
+  variantLabel: string;
+  title: string;
+  sections: any[];
 }
 
 const QuestionGenerator = () => {
@@ -31,6 +45,7 @@ const QuestionGenerator = () => {
   
   const [activeTab, setActiveTab] = useState<'annual' | 'custom'>('annual');
   const [storedPapers, setStoredPapers] = useState<StoredPaper[]>([]);
+  const [currentPaperId, setCurrentPaperId] = useState<number | null>(null);
 
   const [questionTypes, setQuestionTypes] = useState({
     mcq: 5,
@@ -40,6 +55,10 @@ const QuestionGenerator = () => {
     numerical: 0
   });
   const [showAnswers, setShowAnswers] = useState(false);
+  const [downloading, setDownloading] = useState<DownloadingState>({ paper: false, answerKey: false });
+  const [numVariants, setNumVariants] = useState<number>(1);
+  const [generatedVariants, setGeneratedVariants] = useState<GeneratedVariant[]>([]);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
 
   useEffect(() => {
     axios.get('/api/subjects').then(res => setSubjects(res.data));
@@ -67,6 +86,7 @@ const QuestionGenerator = () => {
   const loadPaper = async (id: number) => {
     setLoading(true);
     setGeneratedPaper(null);
+    setCurrentPaperId(id);
     try {
       const res = await axios.get(`/api/papers/${id}`);
       setGeneratedPaper(res.data.content);
@@ -75,6 +95,54 @@ const QuestionGenerator = () => {
       alert('Failed to load paper');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const downloadPDF = async (type: 'paper' | 'answerKey') => {
+    if (!currentPaperId) {
+      alert('Please select a paper first');
+      return;
+    }
+
+    const downloadKey = type === 'paper' ? 'paper' : 'answerKey';
+    setDownloading(prev => ({ ...prev, [downloadKey]: true }));
+
+    try {
+      const endpoint = type === 'paper' 
+        ? `/api/papers/${currentPaperId}/export-pdf`
+        : `/api/papers/${currentPaperId}/export-answer-key`;
+
+      const response = await axios.get(endpoint, {
+        responseType: 'blob'
+      });
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Get filename from content-disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = type === 'paper' ? 'question-paper.pdf' : 'answer-key.pdf';
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error(`Failed to download ${type} PDF:`, error);
+      alert(`Failed to download ${type === 'paper' ? 'question paper' : 'answer key'} PDF`);
+    } finally {
+      setDownloading(prev => ({ ...prev, [downloadKey]: false }));
     }
   };
 
@@ -89,15 +157,31 @@ const QuestionGenerator = () => {
 
     setLoading(true);
     setGeneratedPaper(null);
+    setCurrentPaperId(null);
+    setGeneratedVariants([]);
+    setSelectedVariantIndex(0);
 
     try {
       const res = await axios.post('/api/generate-questions', {
         subjectId: selectedSubject,
         chapterIds: selectedChapters,
         difficulty,
-        questionTypes
+        questionTypes,
+        numVariants: numVariants > 1 ? numVariants : undefined
       });
-      setGeneratedPaper(res.data);
+      
+      // Check if variants were generated
+      if (res.data.variants && res.data.variants.length > 0) {
+        setGeneratedVariants(res.data.variants);
+        setGeneratedPaper(res.data.variants[0]); // Show first variant
+        setCurrentPaperId(res.data.variants[0].paperId);
+      } else {
+        // Single paper
+        setGeneratedPaper(res.data);
+        if (res.data.paperId) {
+          setCurrentPaperId(res.data.paperId);
+        }
+      }
       fetchStoredPapers();
     } catch (error: any) {
       console.error('Generation failed', error);
@@ -173,20 +257,73 @@ const QuestionGenerator = () => {
                       <p className='text-xs mt-2'>Run the generation script on the server.</p>
                     </div>
                   ) : (
-                    storedPapers
-                      .filter(p => !filterSubject || p.subject_id === filterSubject)
-                      .map(paper => (
-                      <button
-                        key={paper.id}
-                        onClick={() => loadPaper(paper.id)}
-                        className='w-full text-left p-3 rounded-lg border hover:bg-blue-50 hover:border-blue-200 transition-colors group'
-                      >
-                        <div className='font-semibold group-hover:text-blue-700'>{paper.title}</div>
-                        <div className='text-xs text-gray-500 mt-1'>
-                          {new Date(paper.created_at).toLocaleDateString()}
-                        </div>
-                      </button>
-                    ))
+                    (() => {
+                      const filteredPapers = storedPapers.filter(p => !filterSubject || p.subject_id === filterSubject);
+                      
+                      // Group papers by subject
+                      const papersBySubject = filteredPapers.reduce((acc, paper) => {
+                        const subjectId = paper.subject_id;
+                        if (!acc[subjectId]) acc[subjectId] = [];
+                        acc[subjectId].push(paper);
+                        return acc;
+                      }, {} as Record<number, StoredPaper[]>);
+                      
+                      return Object.entries(papersBySubject).map(([subjectId, subjectPapers]) => {
+                        const subject = subjects.find(s => s.id === Number(subjectId));
+                        
+                        // Group by chapter (extracted from title)
+                        const papersByChapter = subjectPapers.reduce((acc, paper) => {
+                          // Extract chapter name from title (e.g., "Physics Practice Paper - Matter - Set A")
+                          const match = paper.title.match(/(?:Practice Paper|Annual Exam Paper) - (.+?) -/);
+                          const chapterName = match ? match[1] : 'General';
+                          if (!acc[chapterName]) acc[chapterName] = [];
+                          acc[chapterName].push(paper);
+                          return acc;
+                        }, {} as Record<string, StoredPaper[]>);
+                        
+                        return (
+                          <div key={subjectId} className='space-y-2'>
+                            <div className='font-bold text-sm text-gray-700 bg-gray-100 px-3 py-2 rounded-md'>
+                              {subject?.name || `Subject ${subjectId}`}
+                            </div>
+                            
+                            {Object.entries(papersByChapter).map(([chapterName, chapterPapers]) => (
+                              <div key={chapterName} className='ml-2 space-y-1'>
+                                <div className='font-semibold text-xs text-gray-600 px-2 py-1'>
+                                  📖 {chapterName}
+                                </div>
+                                
+                                {/* Sort by Set (A, B, C, etc.) */}
+                                {chapterPapers
+                                  .sort((a, b) => {
+                                    const labelA = a.variant_label || '';
+                                    const labelB = b.variant_label || '';
+                                    return labelA.localeCompare(labelB);
+                                  })
+                                  .map(paper => (
+                                    <button
+                                      key={paper.id}
+                                      onClick={() => loadPaper(paper.id)}
+                                      className='w-full text-left p-2 ml-4 rounded-lg border hover:bg-blue-50 hover:border-blue-200 transition-colors group text-sm'
+                                    >
+                                      <div className='flex items-center gap-2'>
+                                        {paper.variant_label && (
+                                          <span className='px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded'>
+                                            Set {paper.variant_label}
+                                          </span>
+                                        )}
+                                        <div className='text-xs text-gray-600 group-hover:text-blue-700'>
+                                          {paper.variant_label ? 'Variant' : paper.title}
+                                        </div>
+                                      </div>
+                                    </button>
+                                  ))}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      });
+                    })()
                   )}
                 </div>
               </div>
@@ -298,6 +435,26 @@ const QuestionGenerator = () => {
                 </div>
 
                 <div>
+                  <label className='block font-bold mb-2'>5. Paper Variants</label>
+                  <div className='flex items-center gap-2'>
+                    <select 
+                      className='flex-1 p-2 border rounded'
+                      value={numVariants}
+                      onChange={e => setNumVariants(Number(e.target.value))}
+                    >
+                      <option value={1}>Single Paper</option>
+                      <option value={2}>2 Variants (Set A, B)</option>
+                      <option value={3}>3 Variants (Set A, B, C)</option>
+                      <option value={4}>4 Variants (Set A, B, C, D)</option>
+                      <option value={5}>5 Variants (Set A, B, C, D, E)</option>
+                    </select>
+                  </div>
+                  <p className='text-xs text-gray-500 mt-1'>
+                    {numVariants > 1 ? `Generate ${numVariants} different papers with same difficulty` : 'Generate a single paper'}
+                  </p>
+                </div>
+
+                <div>
                   <label className='flex items-center gap-2 cursor-pointer font-bold'>
                     <input 
                       type='checkbox'
@@ -314,7 +471,7 @@ const QuestionGenerator = () => {
                   className='w-full btn btn-primary flex items-center justify-center gap-2'
                 >
                   {loading ? <Loader2 className='animate-spin' /> : <PenTool size={20} />}
-                  Generate Paper
+                  {numVariants > 1 ? `Generate ${numVariants} Variants` : 'Generate Paper'}
                 </button>
               </>
             )}
@@ -322,12 +479,61 @@ const QuestionGenerator = () => {
 
           {/* Right Panel: Preview */}
           <div className='md:col-span-2 card min-h-[600px] flex flex-col'>
-            <div className='flex justify-between items-center mb-4 border-b pb-4'>
-              <h2 className='text-xl font-bold'>Paper Preview</h2>
-              {generatedPaper && (
-                <button onClick={handlePrint} className='btn btn-secondary flex items-center gap-2'>
-                  <Download size={18} /> Print / PDF
-                </button>
+            <div className='space-y-3 mb-4 border-b pb-4'>
+              <div className='flex justify-between items-center'>
+                <h2 className='text-xl font-bold'>Paper Preview</h2>
+                {generatedPaper && (
+                  <div className='flex gap-2'>
+                    <button 
+                      onClick={() => downloadPDF('paper')} 
+                      disabled={downloading.paper || !currentPaperId}
+                      className='btn btn-primary flex items-center gap-2 text-sm'
+                    >
+                      {downloading.paper ? (
+                        <><Loader2 size={16} className='animate-spin' /> Generating...</>
+                      ) : (
+                        <><FileDown size={16} /> Export PDF</>
+                      )}
+                    </button>
+                    <button 
+                      onClick={() => downloadPDF('answerKey')} 
+                      disabled={downloading.answerKey || !currentPaperId}
+                      className='btn btn-secondary flex items-center gap-2 text-sm'
+                    >
+                      {downloading.answerKey ? (
+                        <><Loader2 size={16} className='animate-spin' /> Generating...</>
+                      ) : (
+                        <><Key size={16} /> Answer Key</>
+                      )}
+                    </button>
+                    <button onClick={handlePrint} className='btn btn-secondary flex items-center gap-2 text-sm'>
+                      <Download size={16} /> Print
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Variant Selector Tabs */}
+              {generatedVariants.length > 1 && (
+                <div className='flex gap-1 bg-gray-100 p-1 rounded-lg w-fit'>
+                  {generatedVariants.map((variant, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setSelectedVariantIndex(index);
+                        setGeneratedPaper(variant);
+                        setCurrentPaperId(variant.paperId);
+                      }}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                        selectedVariantIndex === index 
+                          ? 'bg-white shadow text-blue-600' 
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Set {variant.variantLabel}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
 
