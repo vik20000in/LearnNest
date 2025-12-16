@@ -11,7 +11,8 @@
     "seed:chapters": "ts-node src/scripts/seedChapterQuestions.ts",
     "check:data": "ts-node src/scripts/checkAndGenerateData.ts",
     "generate:annual": "ts-node src/scripts/generateAnnualPapers.ts",
-    "generate:flashcards": "ts-node src/scripts/generateAllFlashcards.ts"
+    "generate:flashcards": "ts-node src/scripts/generateAllFlashcards.ts",
+    "validate:math": "ts-node src/scripts/validateMathQuestions.ts"
   },
   "dependencies": {
     "@types/pdfkit": "^0.17.4",

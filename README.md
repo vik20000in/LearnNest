@@ -201,11 +201,47 @@ npx ts-node src/scripts/regenerateHistory.ts
 # Check for duplicate questions across variants
 npx ts-node src/scripts/checkAllVariants.ts
 
+# Validate Math questions for context relevance and auto-fix (requires AI service)
+npm run validate:math
+
 # Seed flashcards for all chapters
 npm run generate:flashcards
 ```
 
 **Note**: All question papers are pre-generated and stored in the SQLite database. The app does not generate questions at runtime - it browses and displays pre-seeded content.
+
+### AI-Powered Validation Script
+
+The `validate:math` script uses AI to ensure question quality:
+- ✅ Validates each question's relevance to its chapter context
+- 🔍 Flags questions that don't match chapter syllabus
+- 🔄 Automatically regenerates invalid questions (up to 3 attempts per question)
+- ✨ Re-validates regenerated questions to ensure quality
+- 📊 Provides detailed reports of all changes
+
+**Setup Ollama (Free, Local AI - No API Key Required):**
+
+1. **Install Ollama**
+   - Download from: https://ollama.ai/download
+   - Install for Windows/Mac/Linux
+   
+2. **Pull a model** (one-time setup)
+   ```bash
+   ollama pull mistral
+   ```
+   
+3. **Verify it's running**
+   ```bash
+   ollama list
+   ```
+
+4. **(Optional) Configure in `.env`**
+   ```env
+   AI_MODEL=mistral
+   OLLAMA_BASE_URL=http://localhost:11434
+   ```
+
+That's it! Ollama is completely free, runs locally, and requires no API keys or internet after initial model download.
 
 ## Future Feature Ideas
 
