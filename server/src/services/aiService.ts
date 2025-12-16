@@ -15,8 +15,8 @@ const config: AIConfig = {
     baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
 };
 
-export const generateQuestions = async (prompt: string): Promise<string> => {
-    console.log(`Generating questions using ${config.provider}...`);
+export const generateText = async (prompt: string): Promise<string> => {
+    console.log(`Generating text using ${config.provider}...`);
     
     if (config.provider === 'huggingface') {
         return generateHuggingFace(prompt);
@@ -24,6 +24,8 @@ export const generateQuestions = async (prompt: string): Promise<string> => {
         return generateOllama(prompt);
     }
 };
+
+export const generateQuestions = generateText;
 
 const generateHuggingFace = async (prompt: string): Promise<string> => {
     if (!config.apiKey) {

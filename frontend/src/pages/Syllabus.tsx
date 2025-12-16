@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import FlashcardViewer from '../components/FlashcardViewer';
 
 interface Subject {
   id: number;
@@ -75,6 +76,18 @@ const Syllabus = () => {
         <div className="col-span-3 space-y-6">
           {selectedSubject ? (
             <>
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold">Chapters</h3>
+                {chapters.length === 0 && <p className="text-gray-500">No chapters added yet.</p>}
+                {chapters.map(chapter => (
+                  <div key={chapter.id} className="card">
+                    <h4 className="font-bold text-lg">{chapter.name}</h4>
+                    <p className="text-gray-600 mt-2 whitespace-pre-wrap">{chapter.syllabus}</p>
+                    <FlashcardViewer chapterId={chapter.id} />
+                  </div>
+                ))}
+              </div>
+
               <div className="card">
                 <h3 className="text-xl font-bold mb-4">Add New Chapter</h3>
                 <form onSubmit={handleAddChapter} className="space-y-4">
@@ -99,17 +112,6 @@ const Syllabus = () => {
                   </div>
                   <button type="submit" className="btn btn-primary">Add Chapter</button>
                 </form>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold">Chapters</h3>
-                {chapters.length === 0 && <p className="text-gray-500">No chapters added yet.</p>}
-                {chapters.map(chapter => (
-                  <div key={chapter.id} className="card">
-                    <h4 className="font-bold text-lg">{chapter.name}</h4>
-                    <p className="text-gray-600 mt-2 whitespace-pre-wrap">{chapter.syllabus}</p>
-                  </div>
-                ))}
               </div>
             </>
           ) : (

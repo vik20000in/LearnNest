@@ -2,6 +2,7 @@ import express from 'express';
 import * as subjectController from '../controllers/subjectController';
 import * as questionController from '../controllers/questionController';
 import * as documentController from '../controllers/documentController';
+import * as flashcardController from '../controllers/flashcardController';
 import multer from 'multer';
 import path from 'path';
 
@@ -24,6 +25,10 @@ router.get('/subjects', subjectController.getAllSubjects);
 router.get('/subjects/:id/chapters', subjectController.getChaptersBySubject);
 router.post('/chapters', subjectController.createChapter);
 router.put('/chapters/:id', subjectController.updateChapterSyllabus);
+
+// Flashcard Routes
+router.get('/chapters/:id/flashcards', flashcardController.getFlashcards);
+router.post('/chapters/:id/flashcards/generate', flashcardController.generateFlashcards);
 
 // Question Generation Routes
 router.post('/generate-questions', questionController.generatePaper);

@@ -44,6 +44,14 @@ export const initDatabase = async () => {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (subject_id) REFERENCES subjects(id)
         );
+
+        CREATE TABLE IF NOT EXISTS flashcards (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chapter_id INTEGER NOT NULL,
+            front TEXT NOT NULL,
+            back TEXT NOT NULL,
+            FOREIGN KEY (chapter_id) REFERENCES chapters(id)
+        );
     `);
 
     // Seed Subjects
