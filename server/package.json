@@ -14,7 +14,6 @@
     "generate:flashcards": "ts-node src/scripts/generateAllFlashcards.ts",
     "validate:math": "ts-node src/scripts/validateMathQuestions.ts",
     "validate:math:report": "ts-node src/scripts/validateMathQuestionsReportOnly.ts",
-    "validate:math:instant": "ts-node src/scripts/validateMathQuestionsInstant.ts",
     "fix:math": "ts-node src/scripts/fixInvalidMathQuestions.ts",
     "fix:math:instant": "ts-node src/scripts/fixMathQuestionsInstant.ts"
   },
