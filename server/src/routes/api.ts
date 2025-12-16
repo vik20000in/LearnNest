@@ -34,6 +34,8 @@ router.post('/chapters/:id/flashcards/generate', flashcardController.generateFla
 router.post('/generate-questions', questionController.generatePaper);
 router.get('/papers', questionController.getStoredPapers);
 router.get('/papers/:id', questionController.getStoredPaperById);
+router.get('/papers/:id/export-pdf', questionController.exportPaperToPDF);
+router.get('/papers/:id/export-answer-key', questionController.exportAnswerKeyToPDF);
 
 
 // Document Routes

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { generateQuestions } from '../services/aiService';
 import { getDb } from '../db/database';
+import { generateQuestionPaperPDF, generateAnswerKeyPDF } from '../services/pdfService';
 
 export const generatePaper = async (req: Request, res: Response) => {
     const { subjectId, chapterIds, difficulty, questionTypes } = req.body;
@@ -75,14 +76,14 @@ Do not include any preamble or conversational text, just the JSON.
 
             // Save generated paper to database
             const title = parsedData.title || `${subject.name} Practice Paper`;
-            await db.run(
+            const result = await db.run(
                 'INSERT INTO question_papers (subject_id, title, content) VALUES (?, ?, ?)',
                 subjectId,
                 title,
                 JSON.stringify(parsedData)
             );
 
-            res.json(parsedData);
+            res.json({ ...parsedData, paperId: result.lastID });
         } catch (e) {
             console.error("Failed to parse AI JSON:", cleanJson);
             // Fallback: return raw text if JSON parsing fails
@@ -127,5 +128,77 @@ export const getStoredPaperById = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error fetching paper:', error);
         res.status(500).json({ error: 'Failed to fetch paper' });
+    }
+};
+
+export const exportPaperToPDF = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    
+    try {
+        const db = await getDb();
+        const paper = await db.get('SELECT * FROM question_papers WHERE id = ?', id);
+        
+        if (!paper) {
+            return res.status(404).json({ error: 'Paper not found' });
+        }
+        
+        // Parse content if it's a string
+        let paperContent;
+        try {
+            paperContent = typeof paper.content === 'string' ? JSON.parse(paper.content) : paper.content;
+        } catch (e) {
+            return res.status(400).json({ error: 'Invalid paper content format' });
+        }
+
+        // Generate PDF
+        const pdfStream = await generateQuestionPaperPDF(paperContent);
+        
+        // Set response headers
+        const filename = `${paperContent.title || 'question-paper'}.pdf`.replace(/[^a-z0-9-_\s]/gi, '_');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        
+        // Pipe PDF to response
+        pdfStream.pipe(res);
+        
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        res.status(500).json({ error: 'Failed to generate PDF' });
+    }
+};
+
+export const exportAnswerKeyToPDF = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    
+    try {
+        const db = await getDb();
+        const paper = await db.get('SELECT * FROM question_papers WHERE id = ?', id);
+        
+        if (!paper) {
+            return res.status(404).json({ error: 'Paper not found' });
+        }
+        
+        // Parse content if it's a string
+        let paperContent;
+        try {
+            paperContent = typeof paper.content === 'string' ? JSON.parse(paper.content) : paper.content;
+        } catch (e) {
+            return res.status(400).json({ error: 'Invalid paper content format' });
+        }
+
+        // Generate answer key PDF
+        const pdfStream = await generateAnswerKeyPDF(paperContent);
+        
+        // Set response headers
+        const filename = `${paperContent.title || 'answer-key'}_AnswerKey.pdf`.replace(/[^a-z0-9-_\s]/gi, '_');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        
+        // Pipe PDF to response
+        pdfStream.pipe(res);
+        
+    } catch (error) {
+        console.error('Error generating answer key PDF:', error);
+        res.status(500).json({ error: 'Failed to generate answer key PDF' });
     }
 };
