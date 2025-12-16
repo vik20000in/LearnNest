@@ -36,6 +36,7 @@ router.get('/papers', questionController.getStoredPapers);
 router.get('/papers/:id', questionController.getStoredPaperById);
 router.get('/papers/:id/export-pdf', questionController.exportPaperToPDF);
 router.get('/papers/:id/export-answer-key', questionController.exportAnswerKeyToPDF);
+router.get('/variant-sets/:variantSetId', questionController.getVariantsBySetId);
 
 
 // Document Routes

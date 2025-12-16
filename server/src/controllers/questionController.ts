@@ -4,9 +4,10 @@ import { getDb } from '../db/database';
 import { generateQuestionPaperPDF, generateAnswerKeyPDF } from '../services/pdfService';
 
 export const generatePaper = async (req: Request, res: Response) => {
-    const { subjectId, chapterIds, difficulty, questionTypes } = req.body;
+    const { subjectId, chapterIds, difficulty, questionTypes, numVariants } = req.body;
     
     // questionTypes is an object like { mcq: 5, short: 3, long: 2 }
+    // numVariants: if provided (2-5), generate multiple variants
 
     try {
         const db = await getDb();
@@ -61,33 +62,96 @@ Ensure the language is simple, age-appropriate for 11-12 year olds.
 Do not include any preamble or conversational text, just the JSON.
 `;
 
-        const aiResponse = await generateQuestions(prompt);
-        
-        // Attempt to parse JSON. AI might add markdown code blocks.
-        let cleanJson = aiResponse;
-        if (cleanJson.includes('```json')) {
-            cleanJson = cleanJson.split('```json')[1].split('```')[0];
-        } else if (cleanJson.includes('```')) {
-            cleanJson = cleanJson.split('```')[1].split('```')[0];
-        }
+        // Check if generating variants
+        if (numVariants && numVariants >= 2 && numVariants <= 5) {
+            // Generate multiple variants
+            const variantSetId = `variant_${Date.now()}`;
+            const variantLabels = ['A', 'B', 'C', 'D', 'E'];
+            const generatedVariants = [];
 
-        try {
-            const parsedData = JSON.parse(cleanJson.trim());
+            for (let i = 0; i < numVariants; i++) {
+                const variantPrompt = prompt + `\nIMPORTANT: This is Set ${variantLabels[i]}. Generate DIFFERENT questions than any previous sets, but maintain the same difficulty level and structure.\n`;
+                
+                try {
+                    const aiResponse = await generateQuestions(variantPrompt);
+                    
+                    // Parse JSON
+                    let cleanJson = aiResponse;
+                    if (cleanJson.includes('```json')) {
+                        cleanJson = cleanJson.split('```json')[1].split('```')[0];
+                    } else if (cleanJson.includes('```')) {
+                        cleanJson = cleanJson.split('```')[1].split('```')[0];
+                    }
 
-            // Save generated paper to database
-            const title = parsedData.title || `${subject.name} Practice Paper`;
-            const result = await db.run(
-                'INSERT INTO question_papers (subject_id, title, content) VALUES (?, ?, ?)',
-                subjectId,
-                title,
-                JSON.stringify(parsedData)
-            );
+                    const parsedData = JSON.parse(cleanJson.trim());
+                    
+                    // Add variant identifier to title
+                    const baseTitle = parsedData.title || `${subject.name} Practice Paper`;
+                    const variantTitle = `${baseTitle} - Set ${variantLabels[i]}`;
+                    parsedData.title = variantTitle;
 
-            res.json({ ...parsedData, paperId: result.lastID });
-        } catch (e) {
-            console.error("Failed to parse AI JSON:", cleanJson);
-            // Fallback: return raw text if JSON parsing fails
-            res.json({ raw: aiResponse, error: "Failed to parse structured output" });
+                    // Save to database with variant tracking
+                    const result = await db.run(
+                        'INSERT INTO question_papers (subject_id, title, content, variant_set_id, variant_label) VALUES (?, ?, ?, ?, ?)',
+                        subjectId,
+                        variantTitle,
+                        JSON.stringify(parsedData),
+                        variantSetId,
+                        variantLabels[i]
+                    );
+
+                    generatedVariants.push({
+                        ...parsedData,
+                        paperId: result.lastID,
+                        variantLabel: variantLabels[i]
+                    });
+
+                } catch (error) {
+                    console.error(`Failed to generate Set ${variantLabels[i]}:`, error);
+                    // Continue with other variants
+                }
+            }
+
+            if (generatedVariants.length > 0) {
+                res.json({
+                    variants: generatedVariants,
+                    variantSetId: variantSetId,
+                    message: `Successfully generated ${generatedVariants.length} variant(s)`
+                });
+            } else {
+                res.status(500).json({ error: 'Failed to generate any variants' });
+            }
+            
+        } else {
+            // Single paper generation (original flow)
+            const aiResponse = await generateQuestions(prompt);
+            
+            // Attempt to parse JSON. AI might add markdown code blocks.
+            let cleanJson = aiResponse;
+            if (cleanJson.includes('```json')) {
+                cleanJson = cleanJson.split('```json')[1].split('```')[0];
+            } else if (cleanJson.includes('```')) {
+                cleanJson = cleanJson.split('```')[1].split('```')[0];
+            }
+
+            try {
+                const parsedData = JSON.parse(cleanJson.trim());
+
+                // Save generated paper to database
+                const title = parsedData.title || `${subject.name} Practice Paper`;
+                const result = await db.run(
+                    'INSERT INTO question_papers (subject_id, title, content) VALUES (?, ?, ?)',
+                    subjectId,
+                    title,
+                    JSON.stringify(parsedData)
+                );
+
+                res.json({ ...parsedData, paperId: result.lastID });
+            } catch (e) {
+                console.error("Failed to parse AI JSON:", cleanJson);
+                // Fallback: return raw text if JSON parsing fails
+                res.json({ raw: aiResponse, error: "Failed to parse structured output" });
+            }
         }
 
     } catch (error) {
@@ -99,7 +163,11 @@ Do not include any preamble or conversational text, just the JSON.
 export const getStoredPapers = async (req: Request, res: Response) => {
     try {
         const db = await getDb();
-        const papers = await db.all('SELECT id, subject_id, title, created_at FROM question_papers ORDER BY created_at DESC');
+        const papers = await db.all(`
+            SELECT id, subject_id, title, created_at, variant_set_id, variant_label 
+            FROM question_papers 
+            ORDER BY created_at DESC, variant_label ASC
+        `);
         res.json(papers);
     } catch (error) {
         console.error('Error fetching papers:', error);
@@ -200,5 +268,26 @@ export const exportAnswerKeyToPDF = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error generating answer key PDF:', error);
         res.status(500).json({ error: 'Failed to generate answer key PDF' });
+    }
+};
+
+export const getVariantsBySetId = async (req: Request, res: Response) => {
+    const { variantSetId } = req.params;
+    
+    try {
+        const db = await getDb();
+        const variants = await db.all(
+            'SELECT id, subject_id, title, created_at, variant_label FROM question_papers WHERE variant_set_id = ? ORDER BY variant_label ASC',
+            variantSetId
+        );
+        
+        if (variants.length === 0) {
+            return res.status(404).json({ error: 'No variants found for this set' });
+        }
+        
+        res.json(variants);
+    } catch (error) {
+        console.error('Error fetching variants:', error);
+        res.status(500).json({ error: 'Failed to fetch variants' });
     }
 };
