@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { getDb } from '../db/database';
 import fs from 'fs';
 import path from 'path';
+import { downloadFolder } from '../services/googleDriveService';
 
 export const uploadDocument = async (req: Request, res: Response) => {
     if (!req.file) {
@@ -115,5 +116,63 @@ export const bulkImport = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Bulk import error:', error);
         res.status(500).json({ error: 'Failed to import documents' });
+    }
+};
+
+export const syncGoogleDrive = async (req: Request, res: Response) => {
+    const { folderId, apiKey } = req.body;
+
+    if (!folderId || !apiKey) {
+        return res.status(400).json({ error: 'Folder ID and API Key are required' });
+    }
+
+    const syncDir = path.join(__dirname, '../../uploads/gdrive_sync');
+    
+    try {
+        console.log(`Starting Google Drive sync for folder: ${folderId}`);
+        await downloadFolder(folderId, syncDir, apiKey);
+        
+        // Scan and add to DB
+        const db = await getDb();
+        const imported: any[] = [];
+        
+        const processDirectory = async (dirPath: string) => {
+            const items = fs.readdirSync(dirPath);
+            
+            for (const item of items) {
+                const fullPath = path.join(dirPath, item);
+                const stat = fs.statSync(fullPath);
+                
+                if (stat.isDirectory()) {
+                    await processDirectory(fullPath);
+                } else if (item.toLowerCase().endsWith('.pdf') || item.toLowerCase().endsWith('.docx') || item.toLowerCase().endsWith('.doc')) {
+                    // Check if already exists
+                    const relativePath = '/uploads/gdrive_sync/' + path.relative(syncDir, fullPath).replace(/\\/g, '/');
+                    
+                    const existing = await db.get('SELECT id FROM documents WHERE file_path = ?', relativePath);
+                    
+                    if (!existing) {
+                        let type = 'homework';
+                        const lowerName = item.toLowerCase();
+                        if (lowerName.includes('syllabus')) type = 'syllabus';
+                        else if (lowerName.includes('circular')) type = 'circular';
+                        else if (lowerName.includes('exam')) type = 'exam_notice';
+                        
+                        const result = await db.run(
+                            'INSERT INTO documents (title, type, file_path, subject_id) VALUES (?, ?, ?, ?)',
+                            item, type, relativePath, null
+                        );
+                        imported.push({ id: result.lastID, title: item, type });
+                    }
+                }
+            }
+        };
+
+        await processDirectory(syncDir);
+        
+        res.json({ success: true, count: imported.length, imported });
+    } catch (error: any) {
+        console.error('Google Drive sync error:', error);
+        res.status(500).json({ error: 'Failed to sync with Google Drive: ' + error.message });
     }
 };

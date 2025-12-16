@@ -4,7 +4,7 @@ $frontendPort = 5173
 function Test-PortInUse {
     param ($Port)
     $conns = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
-    return $conns -ne $null
+    return $null -ne $conns
 }
 
 Write-Host "Checking LearnNest services..."

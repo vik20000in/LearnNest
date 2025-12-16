@@ -39,6 +39,7 @@ router.get('/papers/:id', questionController.getStoredPaperById);
 // Document Routes
 router.post('/documents', upload.single('file'), documentController.uploadDocument);
 router.post('/documents/import', documentController.bulkImport);
+router.post('/documents/sync-drive', documentController.syncGoogleDrive);
 router.get('/documents', documentController.getDocuments);
 router.delete('/documents/:id', documentController.deleteDocument);
 
