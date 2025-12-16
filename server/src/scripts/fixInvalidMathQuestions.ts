@@ -26,38 +26,116 @@ interface InvalidQuestionReport {
     reason: string;
 }
 
-const generateReplacementQuestion = async (
-    chapterName: string,
-    chapterSyllabus: string,
-    questionType: 'mcq' | 'short' | 'long',
-    marks: number,
-    invalidQuestion: string,
-    reason: string
-): Promise<Question | null> => {
+interface QuestionRequest {
+    chapterName: string;
+    chapterSyllabus: string;
+    questionType: 'mcq' | 'short' | 'long';
+    marks: number;
+    invalidQuestion: string;
+    reason: string;
+    sectionName: string;
+    questionNumber: number;
+}
+
+// Generate multiple replacement questions in one AI call
+const generateReplacementQuestionsBatch = async (
+    requests: QuestionRequest[]
+): Promise<(Question | null)[]> => {
+    if (requests.length === 0) return [];
+
     const typeDescriptions = {
         mcq: 'multiple choice question with 4 options (A, B, C, D)',
         short: 'short answer question (2-3 lines explanation)',
         long: 'long answer question (detailed step-by-step solution)'
     };
 
-    const prompt = `Generate a NEW ${typeDescriptions[questionType]} for Class 6 ICSE Mathematics students in India.
+    // Build batch prompt
+    const questionsPrompt = requests.map((req, idx) => `
+Question ${idx + 1}:
+Chapter: ${req.chapterName}
+Syllabus: ${req.chapterSyllabus}
+Type: ${typeDescriptions[req.questionType]}
+Marks: ${req.marks}
+Invalid question to replace: "${req.invalidQuestion}"
+Reason invalid: ${req.reason}
 
-Chapter: ${chapterName}
-Syllabus Topics: ${chapterSyllabus}
-Marks: ${marks}
+Generate a NEW question that:
+- Tests concepts from ${req.chapterName}
+- Is appropriate for Class 6 ICSE students in India
+- Is COMPLETELY DIFFERENT from the invalid question
+- Matches the syllabus topics listed above
+`).join('\n---\n');
+
+    const prompt = `Generate ${requests.length} NEW questions for Class 6 ICSE Mathematics students in India.
+
+${questionsPrompt}
+
+Respond with a JSON array containing ${requests.length} questions in this exact format:
+[
+${requests.map((req, idx) => `    {
+        "questionNumber": ${idx + 1},
+        "question": "Your contextually appropriate question here",
+        ${req.questionType === 'mcq' ? '"options": ["A) option1", "B) option2", "C) option3", "D) option4"],' : ''}
+        "answer": "Complete answer${req.questionType === 'long' ? ' with detailed step-by-step explanation' : ''}"
+    }${idx < requests.length - 1 ? ',' : ''}`).join('\n')}
+]`;
+
+    try {
+        const response = await generateText(prompt);
+        const jsonMatch = response.match(/\[[\s\S]*\]/);
+        
+        if (jsonMatch) {
+            const results = JSON.parse(jsonMatch[0]);
+            return results.map((result: any, idx: number) => {
+                const req = requests[idx];
+                if (result && result.question) {
+                    return {
+                        question: result.question,
+                        options: result.options,
+                        answer: result.answer,
+                        marks: req.marks
+                    };
+                }
+                return null;
+            });
+        }
+        
+        console.log('   ⚠️ Failed to parse batch AI response, falling back to individual generation');
+        // Fallback: generate individually
+        return Promise.all(requests.map(req => generateReplacementQuestionSingle(req)));
+    } catch (error: any) {
+        console.error(`   ⚠️ Batch generation error: ${error.message}, falling back`);
+        // Fallback: generate individually
+        return Promise.all(requests.map(req => generateReplacementQuestionSingle(req)));
+    }
+};
+
+// Fallback for single question generation
+const generateReplacementQuestionSingle = async (req: QuestionRequest): Promise<Question | null> => {
+    const typeDescriptions = {
+        mcq: 'multiple choice question with 4 options (A, B, C, D)',
+        short: 'short answer question (2-3 lines explanation)',
+        long: 'long answer question (detailed step-by-step solution)'
+    };
+
+    const prompt = `Generate a NEW ${typeDescriptions[req.questionType]} for Class 6 ICSE Mathematics students in India.
+
+Chapter: ${req.chapterName}
+Syllabus Topics: ${req.chapterSyllabus}
+Marks: ${req.marks}
 
 IMPORTANT CONTEXT:
-- This question replaces an invalid question: "${invalidQuestion}"
-- Reason it was invalid: ${reason}
-- Generate a COMPLETELY DIFFERENT question that properly tests concepts from ${chapterName}
+- This question replaces an invalid question: "${req.invalidQuestion}"
+- Reason it was invalid: ${req.reason}
+- Generate a COMPLETELY DIFFERENT question that properly tests concepts from ${req.chapterName}
 - Make sure it's appropriate for Class 6 ICSE students in India
 - Question must be directly related to the chapter topics
 
 Respond in JSON format only:
 {
     "question": "Your contextually appropriate question here",
-    ${questionType === 'mcq' ? '"options": ["A) option1", "B) option2", "C) option3", "D) option4"],' : ''}
-    "answer": "Complete answer${questionType === 'long' ? ' with detailed step-by-step explanation' : ''}"
+    ${req.questionType === 'mcq' ? '"options": ["A) option1", "B) option2", "C) option3", "D) option4"],' : ''}
+    "answer": "Complete answer${req.questionType === 'long' ? ' with detailed step-by-step explanation' : ''}"
 }`;
 
     try {
@@ -70,14 +148,12 @@ Respond in JSON format only:
                 question: result.question,
                 options: result.options,
                 answer: result.answer,
-                marks
+                marks: req.marks
             };
         }
-        
-        console.log('   ⚠️ Failed to parse AI response');
         return null;
     } catch (error: any) {
-        console.error(`   ⚠️ Error generating question: ${error.message}`);
+        console.error(`   ⚠️ Error generating single question: ${error.message}`);
         return null;
     }
 };
@@ -114,7 +190,11 @@ const fixInvalidQuestions = async () => {
     const chapters = await db.all('SELECT id, name, syllabus FROM chapters');
     const chapterMap = new Map(chapters.map(c => [c.name, c.syllabus || 'No syllabus provided']));
 
-    for (const [paperIdStr, questions] of Object.entries(questionsByPaper)) {
+    // Process papers in parallel (3 at a time to avoid overwhelming Ollama)
+    const paperEntries = Object.entries(questionsByPaper);
+    const PARALLEL_PAPERS = 3;
+
+    const processPaper = async (paperIdStr: string, questions: InvalidQuestionReport[]): Promise<{ fixed: number; failed: number }> => {
         const paperId = Number(paperIdStr);
         console.log(`\n${'='.repeat(80)}`);
         console.log(`📄 Processing Paper ID: ${paperId} - ${questions[0].paperTitle}`);
@@ -122,13 +202,15 @@ const fixInvalidQuestions = async () => {
         console.log(`   Invalid questions: ${questions.length}`);
         console.log(`${'='.repeat(80)}\n`);
 
+        let paperFixed = 0;
+        let paperFailed = 0;
+
         try {
             // Load paper content
             const paper = await db.get('SELECT content FROM question_papers WHERE id = ?', paperId);
             if (!paper) {
                 console.log('   ⚠️ Paper not found in database, skipping...');
-                totalFailed += questions.length;
-                continue;
+                return { fixed: 0, failed: questions.length };
             }
 
             const content = JSON.parse(paper.content);
@@ -136,25 +218,24 @@ const fixInvalidQuestions = async () => {
             
             const chapterSyllabus = chapterMap.get(questions[0].chapterName) || 'No syllabus provided';
 
-            for (const invalid of questions) {
-                console.log(`\n   🔍 Fixing Q${invalid.questionNumber} in "${invalid.sectionName}"`);
-                console.log(`      Old question: ${invalid.question.substring(0, 80)}...`);
-                console.log(`      Reason: ${invalid.reason}`);
+            // Prepare all requests for batch processing
+            const requests: QuestionRequest[] = [];
+            const questionMetadata: Array<{ section: Section; questionIndex: number; invalid: InvalidQuestionReport }> = [];
 
-                // Find the section and question
+            for (const invalid of questions) {
                 const section = sections.find(s => 
                     s.name === invalid.sectionName || s.type === invalid.sectionName
                 );
 
                 if (!section) {
-                    console.log(`      ⚠️ Section not found, skipping...`);
+                    console.log(`   ⚠️ Section "${invalid.sectionName}" not found for Q${invalid.questionNumber}, skipping...`);
                     totalFailed++;
                     continue;
                 }
 
                 const questionIndex = invalid.questionNumber - 1;
                 if (questionIndex < 0 || questionIndex >= section.questions.length) {
-                    console.log(`      ⚠️ Question index out of range, skipping...`);
+                    console.log(`   ⚠️ Q${invalid.questionNumber} index out of range, skipping...`);
                     totalFailed++;
                     continue;
                 }
@@ -169,28 +250,46 @@ const fixInvalidQuestions = async () => {
                     questionType = 'long';
                 }
 
-                console.log(`      🤖 Generating new ${questionType} question...`);
-
-                const newQuestion = await generateReplacementQuestion(
-                    invalid.chapterName,
+                requests.push({
+                    chapterName: invalid.chapterName,
                     chapterSyllabus,
                     questionType,
-                    oldQuestion.marks,
-                    invalid.question,
-                    invalid.reason
-                );
+                    marks: oldQuestion.marks,
+                    invalidQuestion: invalid.question,
+                    reason: invalid.reason,
+                    sectionName: invalid.sectionName,
+                    questionNumber: invalid.questionNumber
+                });
 
-                if (newQuestion) {
-                    section.questions[questionIndex] = newQuestion;
-                    console.log(`      ✅ Successfully generated: ${newQuestion.question.substring(0, 80)}...`);
-                    totalFixed++;
-                } else {
-                    console.log(`      ❌ Failed to generate replacement`);
-                    totalFailed++;
+                questionMetadata.push({ section, questionIndex, invalid });
+            }
+
+            // Process in batches of 5 questions (optimal for AI processing)
+            const BATCH_SIZE = 5;
+            console.log(`\n   🤖 Generating ${requests.length} replacement questions in batches of ${BATCH_SIZE}...`);
+
+            for (let i = 0; i < requests.length; i += BATCH_SIZE) {
+                const batch = requests.slice(i, i + BATCH_SIZE);
+                const batchMetadata = questionMetadata.slice(i, i + BATCH_SIZE);
+                
+                console.log(`\n   ⚡ Batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(requests.length / BATCH_SIZE)} (Questions ${i + 1}-${Math.min(i + BATCH_SIZE, requests.length)})`);
+
+                const newQuestions = await generateReplacementQuestionsBatch(batch);
+
+                // Apply generated questions
+                for (let j = 0; j < newQuestions.length; j++) {
+                    const newQuestion = newQuestions[j];
+                    const { section, questionIndex, invalid } = batchMetadata[j];
+
+                    if (newQuestion) {
+                        section.questions[questionIndex] = newQuestion;
+                        console.log(`      ✅ Q${invalid.questionNumber}: ${newQuestion.question.substring(0, 60)}...`);
+                        paperFixed++;
+                    } else {
+                        console.log(`      ❌ Q${invalid.questionNumber}: Failed to generate`);
+                        paperFailed++;
+                    }
                 }
-
-                // Small delay to avoid overwhelming Ollama
-                await new Promise(resolve => setTimeout(resolve, 500));
             }
 
             // Save updated paper
@@ -200,12 +299,33 @@ const fixInvalidQuestions = async () => {
                 JSON.stringify(content),
                 paperId
             );
-            console.log(`\n   💾 Paper ${paperId} updated successfully`);
+            console.log(`\n   💾 Paper ${paperId} updated successfully (Fixed: ${paperFixed}, Failed: ${paperFailed})`);
 
         } catch (error: any) {
             console.error(`   ❌ Error processing paper ${paperId}: ${error.message}`);
-            totalFailed += questions.length;
+            paperFailed += questions.length;
         }
+
+        return { fixed: paperFixed, failed: paperFailed };
+    };
+
+    // Process papers in parallel batches
+    for (let i = 0; i < paperEntries.length; i += PARALLEL_PAPERS) {
+        const batch = paperEntries.slice(i, i + PARALLEL_PAPERS);
+        console.log(`\n🔄 Processing paper batch ${Math.floor(i / PARALLEL_PAPERS) + 1}/${Math.ceil(paperEntries.length / PARALLEL_PAPERS)}`);
+        console.log(`   Papers: ${batch.map(([id]) => id).join(', ')}\n`);
+
+        const results = await Promise.all(
+            batch.map(([paperIdStr, questions]) => processPaper(paperIdStr, questions))
+        );
+
+        // Aggregate results
+        results.forEach(result => {
+            totalFixed += result.fixed;
+            totalFailed += result.failed;
+        });
+
+        console.log(`\n   📊 Batch complete: ${results.reduce((sum, r) => sum + r.fixed, 0)} fixed, ${results.reduce((sum, r) => sum + r.failed, 0)} failed`);
     }
 
     console.log(`\n\n${'='.repeat(80)}`);
