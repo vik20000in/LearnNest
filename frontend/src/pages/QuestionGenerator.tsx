@@ -313,7 +313,7 @@ const QuestionGenerator = () => {
                                           </span>
                                         )}
                                         <div className='text-xs text-gray-600 group-hover:text-blue-700'>
-                                          {paper.variant_label ? 'Variant' : paper.title}
+                                          {paper.variant_label ? `Set ${paper.variant_label} - ${chapterName}` : paper.title}
                                         </div>
                                       </div>
                                     </button>
