@@ -6,7 +6,7 @@ LearnNest is a personal web application designed to help Class 6 ICSE students g
 
 - **AI Question Generator**: Create custom question papers (MCQs, Short/Long Answer) based on specific chapters and difficulty levels.
 - **Pre-Generated Papers**: Access a library of Annual Examination papers and Chapter-wise practice papers stored in the database.
-- **Answer Keys**: Toggle answer keys for both generated and stored papers for easy self-evaluation.
+- **Detailed Answer Keys**: Toggle comprehensive answer keys with step-by-step explanations for Math and detailed paragraphs for Theory subjects.
 - **Syllabus Manager**: Keep track of chapters and syllabus details for all subjects.
 - **Document Vault**: Store and organize homework, circulars, and exam notices.
 - **Student-Friendly UI**: Simple, distraction-free interface with subject filtering and full syllabus selection.
@@ -58,8 +58,11 @@ LearnNest is a personal web application designed to help Class 6 ICSE students g
     **Seed Database (Optional but Recommended):**
     Populate the database with pre-defined annual and chapter-wise papers:
     ```bash
+    # Seeds annual papers
     npm run seed:annual
-    npm run seed:chapters
+    
+    # Seeds detailed chapter-wise questions for all subjects
+    npx ts-node src/scripts/seedNewSyllabusQuestions.ts
     ```
 
 3.  **Setup Frontend**
@@ -94,16 +97,20 @@ The application uses Large Language Models (LLMs) to generate questions.
 - **Output**: The AI returns a structured JSON format which the app renders into a printable paper.
 - **Storage**: Generated papers are automatically saved to the database for future reference.
 
+## Future Feature Ideas
+
+Here are some planned features to enhance the learning experience:
+
+1.  **Progress Tracking**: Visual graphs showing performance over time based on self-evaluation scores.
+2.  **Flashcards**: Auto-generate flashcards from the syllabus for quick revision of key terms and definitions.
+3.  **Gamification**: Earn badges and streaks for completing daily practice papers.
+4.  **PDF Export**: Native PDF export for question papers with professional formatting for printing.
+5.  **Voice Mode**: Oral quiz mode where the app asks questions and the student answers verbally (using speech-to-text).
+6.  **Mistake Log**: A dedicated section to record and review questions that were answered incorrectly.
+7.  **Custom Timer**: Adjustable timer for practice papers to simulate real exam conditions.
+8.  **Parent Dashboard**: A simple view for parents to see topics covered and recent activity.
+
 ## Adding Subjects/Classes
 
-Currently, the app is seeded with Class 6 subjects.
-To add more:
-1.  Go to `server/src/db/database.ts`.
-2.  Add new subjects to the `subjects` array in the `initDatabase` function.
-3.  Restart the server.
-
-## Troubleshooting
-
-- **AI Error**: If using HuggingFace, ensure your API key is correct. If using Ollama, ensure the Ollama app is running and you have pulled the model (`ollama pull mistral`).
-- **Database**: If you want to reset the data, delete the `learnnest.sqlite` file in the `server` folder and restart the server.
+Currently, the app is seeded with Class 6 subjects. You can add more subjects or chapters directly through the "Syllabus" page in the application.
 
