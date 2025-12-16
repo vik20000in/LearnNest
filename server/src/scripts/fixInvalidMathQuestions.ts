@@ -264,8 +264,8 @@ const fixInvalidQuestions = async () => {
                 questionMetadata.push({ section, questionIndex, invalid });
             }
 
-            // Process in batches of 5 questions (optimal for AI processing)
-            const BATCH_SIZE = 5;
+            // Process in batches of 3 questions (prevents timeouts)
+            const BATCH_SIZE = 3;
             console.log(`\n   🤖 Generating ${requests.length} replacement questions in batches of ${BATCH_SIZE}...`);
 
             for (let i = 0; i < requests.length; i += BATCH_SIZE) {
@@ -301,12 +301,21 @@ const fixInvalidQuestions = async () => {
             );
             console.log(`\n   💾 Paper ${paperId} updated successfully (Fixed: ${paperFixed}, Failed: ${paperFailed})`);
 
+            // Save progress to avoid reprocessing fixed questions
+            if (paperFixed > 0) {
+                const reportPath = path.join(__dirname, '../../math_validation_report.json');
+                const currentReport: InvalidQuestionReport[] = JSON.parse(fs.readFileSync(reportPath, 'utf-8'));
+                const updatedReport = currentReport.filter(q => q.paperId !== paperId || paperFailed > 0);
+                fs.writeFileSync(reportPath, JSON.stringify(updatedReport, null, 2));
+                console.log(`   📝 Removed ${paperFixed} fixed questions from validation report`);
+            }
+
         } catch (error: any) {
             console.error(`   ❌ Error processing paper ${paperId}: ${error.message}`);
             paperFailed += questions.length;
         }
 
-        return { fixed: paperFixed, failed: paperFailed };
+        return { fixed: paperFixed, failed: paperFailed, paperId };
     };
 
     // Process papers in parallel batches
@@ -325,7 +334,10 @@ const fixInvalidQuestions = async () => {
             totalFailed += result.failed;
         });
 
-        console.log(`\n   📊 Batch complete: ${results.reduce((sum, r) => sum + r.fixed, 0)} fixed, ${results.reduce((sum, r) => sum + r.failed, 0)} failed`);
+        const batchFixed = results.reduce((sum, r) => sum + r.fixed, 0);
+        const batchFailed = results.reduce((sum, r) => sum + r.failed, 0);
+        console.log(`\n   📊 Batch complete: ${batchFixed} fixed, ${batchFailed} failed`);
+        console.log(`   📋 Papers processed: ${results.map(r => r.paperId).join(', ')}`);
     }
 
     console.log(`\n\n${'='.repeat(80)}`);
