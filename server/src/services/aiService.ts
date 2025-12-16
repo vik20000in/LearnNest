@@ -28,13 +28,13 @@ const generateOllama = async (prompt: string): Promise<string> => {
             stream: false,
             options: {
                 temperature: 0.7,
-                num_predict: 1024
+                num_predict: 2048  // Increased for batch responses
             }
         }, {
             headers: {
                 'Content-Type': 'application/json'
             },
-            timeout: 120000 // 2 minute timeout for generation
+            timeout: 300000 // 5 minute timeout for batch processing
         });
 
         return response.data.response;
