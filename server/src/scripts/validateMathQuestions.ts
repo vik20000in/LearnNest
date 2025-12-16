@@ -36,54 +36,72 @@ interface ValidationResult {
     }[];
 }
 
-const validateQuestionContext = async (
-    question: string,
+// Batch validate multiple questions at once for speed
+const validateQuestionsBatch = async (
+    questions: { question: string; index: number }[],
     chapterName: string,
     chapterSyllabus: string
-): Promise<{ isValid: boolean; reason: string }> => {
-    const prompt = `You are a Math education expert. Analyze if the following question is contextually appropriate for the given chapter.
+): Promise<Map<number, { isValid: boolean; reason: string }>> => {
+    const questionsList = questions.map((q, i) => `${i + 1}. ${q.question}`).join('\n');
+    
+    const prompt = `You are a Math education expert. Analyze if each of the following questions is contextually appropriate for the given chapter.
 
 Chapter: ${chapterName}
 Syllabus Topics: ${chapterSyllabus}
 
-Question: ${question}
+Questions to validate:
+${questionsList}
 
-Respond in JSON format:
-{
-    "isValid": true/false,
-    "reason": "Brief explanation of why the question is valid or invalid for this chapter"
-}
+Respond with a JSON array where each element corresponds to each question in order:
+[
+    {"isValid": true/false, "reason": "Brief explanation"},
+    {"isValid": true/false, "reason": "Brief explanation"},
+    ...
+]
 
-Consider:
-1. Does the question test concepts taught in this chapter?
+For each question, consider:
+1. Does it test concepts taught in this chapter?
 2. Are the mathematical operations appropriate for this topic?
-3. Does the question align with the syllabus content?
+3. Does it align with the syllabus content?
 
 Be strict - flag anything that seems out of context.`;
 
     try {
         const response = await generateText(prompt);
         
-        // Try to extract JSON from response
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        // Try to extract JSON array from response
+        const jsonMatch = response.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
-            const result = JSON.parse(jsonMatch[0]);
-            return {
-                isValid: result.isValid === true,
-                reason: result.reason || 'No reason provided'
-            };
+            const results = JSON.parse(jsonMatch[0]);
+            const resultMap = new Map<number, { isValid: boolean; reason: string }>();
+            
+            questions.forEach((q, i) => {
+                if (results[i]) {
+                    resultMap.set(q.index, {
+                        isValid: results[i].isValid === true,
+                        reason: results[i].reason || 'No reason provided'
+                    });
+                } else {
+                    resultMap.set(q.index, { isValid: true, reason: 'No validation result' });
+                }
+            });
+            
+            return resultMap;
         }
         
-        // Fallback parsing
-        const isValid = response.toLowerCase().includes('"isvalid": true') || 
-                       response.toLowerCase().includes('"isvalid":true');
-        return {
-            isValid,
-            reason: isValid ? 'Appears valid' : 'Context mismatch detected'
-        };
+        // Fallback - mark all as valid if parsing fails
+        const resultMap = new Map<number, { isValid: boolean; reason: string }>();
+        questions.forEach(q => {
+            resultMap.set(q.index, { isValid: true, reason: 'Parse error - defaulting to valid' });
+        });
+        return resultMap;
     } catch (error) {
-        console.error('Error validating question:', error);
-        return { isValid: true, reason: 'Error during validation - defaulting to valid' };
+        console.error('Error validating questions batch:', error);
+        const resultMap = new Map<number, { isValid: boolean; reason: string }>();
+        questions.forEach(q => {
+            resultMap.set(q.index, { isValid: true, reason: 'Error during validation - defaulting to valid' });
+        });
+        return resultMap;
     }
 };
 
@@ -219,22 +237,33 @@ const validateAndFixMathPapers = async () => {
 
             for (let sIdx = 0; sIdx < sections.length; sIdx++) {
                 const section = sections[sIdx];
+                console.log(`\n   Section: ${section.name} (${section.questions.length} questions)`);
                 
+                // Batch validate all questions in this section at once
+                const questionsToValidate = section.questions.map((q, idx) => ({
+                    question: q.question,
+                    index: idx
+                }));
+                
+                process.stdout.write(`   Validating batch... `);
+                const validationResults = await validateQuestionsBatch(
+                    questionsToValidate,
+                    chapter.name,
+                    chapter.syllabus || 'No syllabus provided'
+                );
+                console.log(`Done! ✅`);
+                
+                totalQuestionsChecked += section.questions.length;
+                
+                // Process results
                 for (let qIdx = 0; qIdx < section.questions.length; qIdx++) {
                     const question = section.questions[qIdx];
-                    totalQuestionsChecked++;
+                    const validation = validationResults.get(qIdx);
                     
-                    process.stdout.write(`   Checking Q${qIdx + 1} (${section.type})... `);
+                    if (!validation) continue;
                     
-                    const validation = await validateQuestionContext(
-                        question.question,
-                        chapter.name,
-                        chapter.syllabus || 'No syllabus provided'
-                    );
-
                     if (!validation.isValid) {
-                        console.log(`❌ INVALID`);
-                        console.log(`      Reason: ${validation.reason}`);
+                        console.log(`   ❌ Q${qIdx + 1}: INVALID - ${validation.reason}`);
                         totalInvalidQuestions++;
                         
                         invalidQuestions.push({
@@ -245,7 +274,7 @@ const validateAndFixMathPapers = async () => {
                         });
 
                         // Attempt to regenerate
-                        console.log(`      🔄 Regenerating question...`);
+                        console.log(`      🔄 Regenerating...`);
                         
                         let questionType: 'mcq' | 'short' | 'long' = 'short';
                         if (section.type.toLowerCase().includes('mcq') || question.options) {
@@ -260,7 +289,6 @@ const validateAndFixMathPapers = async () => {
 
                         while (attempts < 3 && !isNewQuestionValid) {
                             attempts++;
-                            console.log(`      Attempt ${attempts}/3...`);
                             
                             newQuestion = await regenerateQuestion(
                                 questionType,
@@ -271,35 +299,32 @@ const validateAndFixMathPapers = async () => {
                             );
 
                             if (newQuestion) {
-                                // Validate the new question
-                                const newValidation = await validateQuestionContext(
-                                    newQuestion.question,
+                                // Validate the new question (single validation)
+                                const newValidationResults = await validateQuestionsBatch(
+                                    [{ question: newQuestion.question, index: 0 }],
                                     chapter.name,
                                     chapter.syllabus || 'No syllabus provided'
                                 );
+                                const newValidation = newValidationResults.get(0);
 
-                                if (newValidation.isValid) {
+                                if (newValidation && newValidation.isValid) {
                                     isNewQuestionValid = true;
                                     sections[sIdx].questions[qIdx] = newQuestion;
                                     paperModified = true;
                                     totalQuestionsRegenerated++;
-                                    console.log(`      ✅ Successfully regenerated and validated!`);
+                                    console.log(`      ✅ Regenerated successfully!`);
                                 } else {
-                                    console.log(`      ⚠️ New question also invalid: ${newValidation.reason}`);
+                                    console.log(`      ⚠️ Attempt ${attempts} invalid: ${newValidation?.reason || 'Unknown'}`);
                                 }
                             }
                         }
 
                         if (!isNewQuestionValid) {
-                            console.log(`      ⛔ Failed to generate valid question after 3 attempts`);
+                            console.log(`      ⛔ Failed after 3 attempts`);
                         }
-
                     } else {
-                        console.log(`✅ Valid`);
+                        console.log(`   ✅ Q${qIdx + 1}: Valid`);
                     }
-
-                    // Small delay to avoid rate limiting
-                    await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
 
