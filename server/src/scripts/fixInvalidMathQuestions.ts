@@ -194,7 +194,7 @@ const fixInvalidQuestions = async () => {
     const paperEntries = Object.entries(questionsByPaper);
     const PARALLEL_PAPERS = 3;
 
-    const processPaper = async (paperIdStr: string, questions: InvalidQuestionReport[]): Promise<{ fixed: number; failed: number }> => {
+    const processPaper = async (paperIdStr: string, questions: InvalidQuestionReport[]): Promise<{ fixed: number; failed: number; paperId: number }> => {
         const paperId = Number(paperIdStr);
         console.log(`\n${'='.repeat(80)}`);
         console.log(`📄 Processing Paper ID: ${paperId} - ${questions[0].paperTitle}`);
@@ -210,7 +210,7 @@ const fixInvalidQuestions = async () => {
             const paper = await db.get('SELECT content FROM question_papers WHERE id = ?', paperId);
             if (!paper) {
                 console.log('   ⚠️ Paper not found in database, skipping...');
-                return { fixed: 0, failed: questions.length };
+                return { fixed: 0, failed: questions.length, paperId };
             }
 
             const content = JSON.parse(paper.content);
