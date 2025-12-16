@@ -14,7 +14,6 @@
     "generate:flashcards": "ts-node src/scripts/generateAllFlashcards.ts"
   },
   "dependencies": {
-    "@huggingface/inference": "^4.13.5",
     "@types/pdfkit": "^0.17.4",
     "axios": "^1.4.0",
     "cors": "^2.8.5",

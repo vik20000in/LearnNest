@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { X, BookOpen, Sparkles, FileText } from 'lucide-react';
+import { X, BookOpen, FileText } from 'lucide-react';
 
 interface Flashcard {
   id: number;
@@ -15,7 +15,6 @@ interface FlashcardViewerProps {
 const FlashcardViewer = ({ chapterId }: FlashcardViewerProps) => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(false);
-  const [generating, setGenerating] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -33,19 +32,6 @@ const FlashcardViewer = ({ chapterId }: FlashcardViewerProps) => {
       console.error('Failed to fetch flashcards', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const generateFlashcards = async () => {
-    setGenerating(true);
-    try {
-      const res = await axios.post(`/api/chapters/${chapterId}/flashcards/generate`);
-      setFlashcards(res.data);
-    } catch (error) {
-      console.error('Failed to generate flashcards', error);
-      alert('Failed to generate flashcards. Please try again.');
-    } finally {
-      setGenerating(false);
     }
   };
 
@@ -83,26 +69,6 @@ const FlashcardViewer = ({ chapterId }: FlashcardViewerProps) => {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
-                <div className="flex justify-end mb-6">
-                     <button 
-                      onClick={generateFlashcards} 
-                      disabled={generating}
-                      className="inline-flex items-center gap-2 text-sm bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-all hover:shadow-md font-medium"
-                    >
-                      {generating ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles size={16} />
-                          Auto-Generate Notes
-                        </>
-                      )}
-                    </button>
-                </div>
-
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20">
                     <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-100 border-t-indigo-600 mb-4"></div>
@@ -129,7 +95,7 @@ const FlashcardViewer = ({ chapterId }: FlashcardViewerProps) => {
                   </div>
                   <h4 className="text-lg font-medium text-gray-900 mb-1">No notes available yet</h4>
                   <p className="text-gray-500 mb-6 text-center max-w-sm">
-                    Click the generate button above to create comprehensive revision notes for this chapter using AI.
+                    Flashcards will be available soon for this chapter.
                   </p>
                 </div>
               )}

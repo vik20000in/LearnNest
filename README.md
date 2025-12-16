@@ -9,25 +9,20 @@ graph TB
     subgraph "Frontend - React SPA"
         UI[User Interface<br/>React + TypeScript]
         Router[React Router<br/>Navigation]
-        Components[Components<br/>- QuestionGenerator<br/>- Syllabus<br/>- Documents<br/>- Home]
+        Components[Components<br/>- PracticeQuestions<br/>- Syllabus<br/>- Documents<br/>- Home]
         HTTP[HTTP Client<br/>Axios]
     end
     
     subgraph "Backend - Node.js/Express"
         API[Express Server<br/>Port 3000]
-        Routes[API Routes<br/>- /api/questions<br/>- /api/subjects<br/>- /api/documents]
+        Routes[API Routes<br/>- /api/papers<br/>- /api/subjects<br/>- /api/documents<br/>- /api/flashcards]
         Controllers[Controllers<br/>- questionController<br/>- subjectController<br/>- documentController]
-        Services[Services<br/>- aiService]
-    end
-    
-    subgraph "AI Integration"
-        HF[HuggingFace API<br/>Mistral-7B]
-        Ollama[Ollama Local<br/>Mistral/LLaMA]
+        Services[Services<br/>- pdfService<br/>- googleDriveService]
     end
     
     subgraph "Data Layer"
         DB[(SQLite Database<br/>learnnest.sqlite)]
-        Scripts[Database Scripts<br/>- Seed Annual Papers<br/>- Seed Variants<br/>- Generate Papers]
+        Scripts[Database Scripts<br/>- regenerateAllSubjects.ts<br/>- regenerateHistory.ts<br/>- seedFlashcards.ts]
         Uploads[File Storage<br/>Document Uploads]
     end
     
@@ -37,27 +32,25 @@ graph TB
     HTTP -->|REST API| API
     API --> Routes
     Routes --> Controllers
-    Controllers --> Services
     Controllers --> DB
-    Services -->|Generate Questions| HF
-    Services -->|Generate Questions| Ollama
-    Scripts -->|Populate| DB
     Controllers -->|Store Files| Uploads
+    Controllers -->|Generate PDFs| Services
+    Scripts -->|Populate| DB
     
     style UI fill:#61dafb
     style API fill:#68a063
     style DB fill:#003b57
-    style HF fill:#ff9d00
-    style Ollama fill:#ff6b6b
+    style Scripts fill:#9333ea
 ```
 
 ## Features
 
-- **AI Question Generator**: Create custom question papers (MCQs, Short/Long Answer) based on specific chapters and difficulty levels
-- **Pre-Generated Papers**: Access library of practice papers with 3 unique variants (Set A, B, C) per chapter across all subjects
+- **Pre-Generated Practice Papers**: Access library of 219+ practice papers with 3 unique variants (Set A, B, C) per chapter across all ICSE Class 6 subjects
 - **Detailed Answer Keys**: Comprehensive answers with step-by-step explanations for Math and detailed paragraphs for Theory subjects
 - **Syllabus Manager**: Track chapters and syllabus details for all ICSE Class 6 subjects
+- **Flashcard Notes**: Revision notes for quick chapter review
 - **Document Vault**: Store and organize homework, circulars, and exam notices with file uploads
+- **PDF Export & Print**: Generate printable PDFs of question papers with/without answers
 - **Student-Friendly UI**: Clean, distraction-free interface with subject filtering and hierarchical paper selection
 - **Local & Private**: Runs locally on your computer - no cloud storage, no data tracking
 
@@ -76,16 +69,14 @@ graph TB
 - **Node.js** - JavaScript runtime
 - **Express** - Web framework for REST API
 - **TypeScript** - Type-safe server code
-- **SQLite3** - Lightweight embedded database
+- **SQLite3** - Lightweight embedded database with pre-seeded content
 - **ts-node-dev** - Development server with auto-reload
-
-### AI Integration
-- **HuggingFace Inference API** - Cloud-based LLM access (Mistral-7B-Instruct)
-- **Ollama** - Local LLM runtime (supports Mistral, LLaMA, etc.)
 
 ### File Handling
 - **Multer** - Middleware for file uploads
 - **pdf-parse** - PDF text extraction for document processing
+- **pdfkit** - PDF generation for question paper exports
+- **googleapis** - Google Drive integration for document sync
 
 ## Prerequisites
 
@@ -106,31 +97,20 @@ graph TB
     npm install
     ```
     
-    **Configure AI:**
+    **Configure Environment (Optional):**
     Create a `.env` file in the `server` directory:
     ```env
     PORT=3000
-    # Options: 'huggingface' or 'ollama'
-    AI_PROVIDER=huggingface 
-    
-    # If using HuggingFace (Get free token from https://huggingface.co/settings/tokens)
-    HF_API_KEY=your_huggingface_api_key
-    AI_MODEL=mistralai/Mistral-7B-Instruct-v0.2
-
-    # If using Ollama (Local)
-    # AI_PROVIDER=ollama
-    # OLLAMA_BASE_URL=http://localhost:11434
-    # AI_MODEL=mistral
     ```
 
-    **Seed Database (Optional but Recommended):**
-    Populate the database with pre-defined annual and chapter-wise papers:
+    **Database Setup:**
+    The database comes pre-seeded with 219+ question papers. If needed, you can regenerate content:
     ```bash
-    # Seeds annual papers
-    npm run seed:annual
+    # Regenerate all subject papers with unique variants
+    npx ts-node src/scripts/regenerateAllSubjects.ts
     
-    # Seeds detailed chapter-wise questions for all subjects
-    npx ts-node src/scripts/seedNewSyllabusQuestions.ts
+    # Regenerate History papers specifically
+    npx ts-node src/scripts/regenerateHistory.ts
     ```
 
 3.  **Setup Frontend**
@@ -194,11 +174,11 @@ LearnNest/
 │   │   ├── controllers/     # Request handlers
 │   │   ├── db/              # Database initialization
 │   │   ├── routes/          # API route definitions
-│   │   ├── services/        # Business logic (AI service)
-│   │   ├── scripts/         # Database seeding & generation scripts
+│   │   ├── services/        # Business logic (PDF, Google Drive)
+│   │   ├── scripts/         # Database seeding & regeneration scripts
 │   │   └── index.ts         # Server entry point
 │   ├── uploads/             # Uploaded document storage
-│   ├── learnnest.sqlite     # SQLite database file
+│   ├── learnnest.sqlite     # SQLite database file (pre-seeded)
 │   └── package.json
 │
 ├── start.bat / start-app.ps1  # Launch scripts for both frontend & backend
@@ -212,30 +192,32 @@ LearnNest/
 The server includes several utility scripts for managing question papers:
 
 ```bash
-# Seed pre-generated annual examination papers
-npm run seed:annual
-
-# Generate variant papers (Sets A, B, C) for all chapters
+# Regenerate all subject papers with unique variants (Sets A, B, C)
 npx ts-node src/scripts/regenerateAllSubjects.ts
+
+# Regenerate History papers specifically
+npx ts-node src/scripts/regenerateHistory.ts
 
 # Check for duplicate questions across variants
 npx ts-node src/scripts/checkAllVariants.ts
 
-# Generate flashcards for all chapters
+# Seed flashcards for all chapters
 npm run generate:flashcards
 ```
+
+**Note**: All question papers are pre-generated and stored in the SQLite database. The app does not generate questions at runtime - it browses and displays pre-seeded content.
 
 ## Future Feature Ideas
 
 Planned enhancements:
 1. **Progress Tracking** - Visual graphs showing performance over time
-2. **Flashcards** - Auto-generated flashcards for quick revision
+2. **Enhanced Flashcards** - More comprehensive revision notes with diagrams
 3. **Gamification** - Badges and streaks for completing practice papers
-4. **PDF Export** - Native PDF export with professional formatting
-5. **Voice Mode** - Oral quiz mode with speech-to-text
-6. **Mistake Log** - Track and review incorrect answers
-7. **Custom Timer** - Adjustable exam timers
-8. **Parent Dashboard** - Activity overview for parents
+4. **Voice Mode** - Oral quiz mode with speech-to-text
+5. **Mistake Log** - Track and review incorrect answers
+6. **Custom Timer** - Adjustable exam timers with practice mode
+7. **Parent Dashboard** - Activity overview for parents
+8. **Mobile App** - Native Android/iOS apps for on-the-go practice
 
 ## Adding Subjects/Classes
 

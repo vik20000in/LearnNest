@@ -1,13 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Download, Loader2, FileText, PenTool, Layout, FileDown, Key } from 'lucide-react';
+import { Download, Loader2, FileText, Layout, FileDown, Key } from 'lucide-react';
 
 interface Subject {
-  id: number;
-  name: string;
-}
-
-interface Chapter {
   id: number;
   name: string;
 }
@@ -26,53 +21,20 @@ interface DownloadingState {
   answerKey: boolean;
 }
 
-interface GeneratedVariant {
-  paperId: number;
-  variantLabel: string;
-  title: string;
-  sections: any[];
-}
-
 const QuestionGenerator = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
   const [filterSubject, setFilterSubject] = useState<number | null>(null);
-  const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
-  const [difficulty, setDifficulty] = useState('Medium');
   const [loading, setLoading] = useState(false);
   const [generatedPaper, setGeneratedPaper] = useState<any>(null);
-  
-  const [activeTab, setActiveTab] = useState<'annual' | 'custom'>('annual');
   const [storedPapers, setStoredPapers] = useState<StoredPaper[]>([]);
   const [currentPaperId, setCurrentPaperId] = useState<number | null>(null);
-
-  const [questionTypes, setQuestionTypes] = useState({
-    mcq: 5,
-    veryShort: 5,
-    short: 3,
-    long: 2,
-    numerical: 0
-  });
   const [showAnswers, setShowAnswers] = useState(false);
   const [downloading, setDownloading] = useState<DownloadingState>({ paper: false, answerKey: false });
-  const [numVariants, setNumVariants] = useState<number>(1);
-  const [generatedVariants, setGeneratedVariants] = useState<GeneratedVariant[]>([]);
-  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
 
   useEffect(() => {
     axios.get('/api/subjects').then(res => setSubjects(res.data));
     fetchStoredPapers();
   }, []);
-
-  useEffect(() => {
-    if (selectedSubject) {
-      axios.get(`/api/subjects/${selectedSubject}/chapters`).then(res => {
-        setChapters(res.data);
-        setSelectedChapters([]);
-      });
-    }
-  }, [selectedSubject]);
 
   const fetchStoredPapers = async () => {
     try {
@@ -146,52 +108,6 @@ const QuestionGenerator = () => {
     }
   };
 
-  const handleChapterToggle = (id: number) => {
-    setSelectedChapters(prev => 
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
-  };
-
-  const handleGenerate = async () => {
-    if (!selectedSubject || selectedChapters.length === 0) return;
-
-    setLoading(true);
-    setGeneratedPaper(null);
-    setCurrentPaperId(null);
-    setGeneratedVariants([]);
-    setSelectedVariantIndex(0);
-
-    try {
-      const res = await axios.post('/api/generate-questions', {
-        subjectId: selectedSubject,
-        chapterIds: selectedChapters,
-        difficulty,
-        questionTypes,
-        numVariants: numVariants > 1 ? numVariants : undefined
-      });
-      
-      // Check if variants were generated
-      if (res.data.variants && res.data.variants.length > 0) {
-        setGeneratedVariants(res.data.variants);
-        setGeneratedPaper(res.data.variants[0]); // Show first variant
-        setCurrentPaperId(res.data.variants[0].paperId);
-      } else {
-        // Single paper
-        setGeneratedPaper(res.data);
-        if (res.data.paperId) {
-          setCurrentPaperId(res.data.paperId);
-        }
-      }
-      fetchStoredPapers();
-    } catch (error: any) {
-      console.error('Generation failed', error);
-      const errorMessage = error.response?.data?.error || 'Failed to generate questions. Please try again.';
-      alert(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handlePrint = () => {
     window.print();
   };
@@ -200,28 +116,13 @@ const QuestionGenerator = () => {
     <div className='space-y-8 print:space-y-4'>
       <div className='print:hidden space-y-8'>
         <div className='flex justify-between items-center'>
-          <h1 className='text-3xl font-bold'>Question Paper Generator</h1>
-          <div className='flex bg-gray-100 p-1 rounded-lg'>
-            <button
-              onClick={() => setActiveTab('annual')}
-              className={`px-4 py-2 rounded-md flex items-center gap-2 ${activeTab === 'annual' ? 'bg-white shadow text-blue-600' : 'text-gray-600'}`}
-            >
-              <FileText size={18} /> Annual Papers
-            </button>
-            <button
-              onClick={() => setActiveTab('custom')}
-              className={`px-4 py-2 rounded-md flex items-center gap-2 ${activeTab === 'custom' ? 'bg-white shadow text-blue-600' : 'text-gray-600'}`}
-            >
-              <PenTool size={18} /> Custom Generator
-            </button>
-          </div>
+          <h1 className='text-3xl font-bold'>Practice Question Papers</h1>
         </div>
 
         <div className='grid md:grid-cols-3 gap-8'>
-          {/* Left Panel: Configuration or List */}
+          {/* Left Panel: Paper Selection */}
           <div className='md:col-span-1 space-y-6 card h-fit'>
-            
-            {activeTab === 'annual' ? (
+            {(
               <div className='space-y-4'>
                 <h2 className='font-bold text-lg flex items-center gap-2'>
                   <Layout className='w-5 h-5' /> Available Papers
@@ -327,153 +228,6 @@ const QuestionGenerator = () => {
                   )}
                 </div>
               </div>
-            ) : (
-              <>
-                <div>
-                  <label className='block font-bold mb-2'>1. Select Subject</label>
-                  <select 
-                    className='w-full p-2 border rounded-md'
-                    onChange={e => setSelectedSubject(Number(e.target.value))}
-                    value={selectedSubject || ''}
-                  >
-                    <option value=''>Choose Subject...</option>
-                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                </div>
-
-                {selectedSubject && (
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className='block font-bold'>2. Select Chapters</label>
-                      <button 
-                        onClick={() => {
-                          if (selectedChapters.length === chapters.length) {
-                            setSelectedChapters([]);
-                          } else {
-                            setSelectedChapters(chapters.map(c => c.id));
-                          }
-                        }}
-                        className="text-xs text-blue-600 hover:underline"
-                      >
-                        {selectedChapters.length === chapters.length ? 'Deselect All' : 'Select Full Syllabus'}
-                      </button>
-                    </div>
-                    <div className='max-h-48 overflow-y-auto border rounded-md p-2 space-y-2'>
-                      {chapters.map(chapter => (
-                        <label key={chapter.id} className='flex items-start gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded'>
-                          <input 
-                            type='checkbox'
-                            checked={selectedChapters.includes(chapter.id)}
-                            onChange={() => handleChapterToggle(chapter.id)}
-                            className='mt-1'
-                          />
-                          <span className='text-sm'>{chapter.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className='block font-bold mb-2'>3. Difficulty</label>
-                  <div className='flex gap-4'>
-                    {['Easy', 'Medium', 'Hard'].map(d => (
-                      <label key={d} className='flex items-center gap-2 cursor-pointer'>
-                        <input 
-                          type='radio' 
-                          name='difficulty'
-                          value={d}
-                          checked={difficulty === d}
-                          onChange={e => setDifficulty(e.target.value)}
-                        />
-                        {d}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className='block font-bold mb-2'>4. Question Distribution</label>
-                  <div className='space-y-2 text-sm'>
-                    <div className='flex justify-between items-center'>
-                      <span>MCQs</span>
-                      <input 
-                        type='number' 
-                        className='w-16 p-1 border rounded'
-                        value={questionTypes.mcq}
-                        onChange={e => setQuestionTypes({...questionTypes, mcq: Number(e.target.value)})}
-                      />
-                    </div>
-                    <div className='flex justify-between items-center'>
-                      <span>Very Short</span>
-                      <input 
-                        type='number' 
-                        className='w-16 p-1 border rounded'
-                        value={questionTypes.veryShort}
-                        onChange={e => setQuestionTypes({...questionTypes, veryShort: Number(e.target.value)})}
-                      />
-                    </div>
-                    <div className='flex justify-between items-center'>
-                      <span>Short Answer</span>
-                      <input 
-                        type='number' 
-                        className='w-16 p-1 border rounded'
-                        value={questionTypes.short}
-                        onChange={e => setQuestionTypes({...questionTypes, short: Number(e.target.value)})}
-                      />
-                    </div>
-                    <div className='flex justify-between items-center'>
-                      <span>Long Answer</span>
-                      <input 
-                        type='number' 
-                        className='w-16 p-1 border rounded'
-                        value={questionTypes.long}
-                        onChange={e => setQuestionTypes({...questionTypes, long: Number(e.target.value)})}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className='block font-bold mb-2'>5. Paper Variants</label>
-                  <div className='flex items-center gap-2'>
-                    <select 
-                      className='flex-1 p-2 border rounded'
-                      value={numVariants}
-                      onChange={e => setNumVariants(Number(e.target.value))}
-                    >
-                      <option value={1}>Single Paper</option>
-                      <option value={2}>2 Variants (Set A, B)</option>
-                      <option value={3}>3 Variants (Set A, B, C)</option>
-                      <option value={4}>4 Variants (Set A, B, C, D)</option>
-                      <option value={5}>5 Variants (Set A, B, C, D, E)</option>
-                    </select>
-                  </div>
-                  <p className='text-xs text-gray-500 mt-1'>
-                    {numVariants > 1 ? `Generate ${numVariants} different papers with same difficulty` : 'Generate a single paper'}
-                  </p>
-                </div>
-
-                <div>
-                  <label className='flex items-center gap-2 cursor-pointer font-bold'>
-                    <input 
-                      type='checkbox'
-                      checked={showAnswers}
-                      onChange={e => setShowAnswers(e.target.checked)}
-                    />
-                    Include Answer Key
-                  </label>
-                </div>
-
-                <button 
-                  onClick={handleGenerate}
-                  disabled={loading || !selectedSubject || selectedChapters.length === 0}
-                  className='w-full btn btn-primary flex items-center justify-center gap-2'
-                >
-                  {loading ? <Loader2 className='animate-spin' /> : <PenTool size={20} />}
-                  {numVariants > 1 ? `Generate ${numVariants} Variants` : 'Generate Paper'}
-                </button>
-              </>
             )}
           </div>
 
@@ -512,29 +266,6 @@ const QuestionGenerator = () => {
                   </div>
                 )}
               </div>
-
-              {/* Variant Selector Tabs */}
-              {generatedVariants.length > 1 && (
-                <div className='flex gap-1 bg-gray-100 p-1 rounded-lg w-fit'>
-                  {generatedVariants.map((variant, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setSelectedVariantIndex(index);
-                        setGeneratedPaper(variant);
-                        setCurrentPaperId(variant.paperId);
-                      }}
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                        selectedVariantIndex === index 
-                          ? 'bg-white shadow text-blue-600' 
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      Set {variant.variantLabel}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             {loading ? (
