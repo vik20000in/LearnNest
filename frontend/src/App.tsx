@@ -3,7 +3,7 @@ import Home from './pages/Home';
 import QuestionGenerator from './pages/QuestionGenerator';
 import Documents from './pages/Documents';
 import Syllabus from './pages/Syllabus';
-import { BookOpen, FileText, PenTool, Home as HomeIcon } from 'lucide-react';
+import { BookOpen, FileText, FileQuestion, Home as HomeIcon } from 'lucide-react';
 
 function App() {
   return (
@@ -23,8 +23,8 @@ function App() {
                 <span>Home</span>
               </Link>
               <Link to="/generate" className="flex items-center space-x-1 text-gray-600 hover:text-primary">
-                <PenTool className="w-5 h-5" />
-                <span>Generate Paper</span>
+                <FileQuestion className="w-5 h-5" />
+                <span>Practice Papers</span>
               </Link>
               <Link to="/documents" className="flex items-center space-x-1 text-gray-600 hover:text-primary">
                 <FileText className="w-5 h-5" />

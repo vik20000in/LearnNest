@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Download, Loader2, FileText, Layout, FileDown, Key } from 'lucide-react';
+import { Download, Loader2, FileText, Layout, FileDown, Key, FileQuestion } from 'lucide-react';
 
 interface Subject {
   id: number;
@@ -280,7 +280,7 @@ const QuestionGenerator = () => {
                   <div className='text-center border-b-2 border-black pb-4 mb-6'>
                     <h1 className='text-2xl font-bold uppercase'>{generatedPaper.school || 'LearnNest School'}</h1>
                     <h2 className='text-xl font-bold uppercase mt-1'>{generatedPaper.title || 'Practice Paper'}</h2>
-                    <p className='text-lg font-semibold mt-2'>{generatedPaper.class || `Subject: ${subjects.find(s => s.id === selectedSubject)?.name}`}</p>
+                    <p className='text-lg font-semibold mt-2'>{generatedPaper.class || ''}</p>
                   </div>
 
                   {generatedPaper.sections?.map((section: any, idx: number) => (
@@ -325,8 +325,8 @@ const QuestionGenerator = () => {
               </div>
             ) : (
               <div className='h-full flex flex-col items-center justify-center text-gray-400 border-2 border-dashed rounded-xl'>
-                <PenTool className='w-16 h-16 mb-4 opacity-20' />
-                <p>Select a paper from the list or generate a new one</p>
+                <FileQuestion className='w-16 h-16 mb-4 opacity-20' />
+                <p>Select a paper from the list to preview</p>
               </div>
             )}
           </div>
@@ -340,7 +340,7 @@ const QuestionGenerator = () => {
              <div className='text-center border-b-2 border-black pb-4 mb-6'>
                 <h1 className='text-2xl font-bold uppercase'>{generatedPaper.school || 'LearnNest School'}</h1>
                 <h2 className='text-xl font-bold uppercase mt-1'>{generatedPaper.title || 'Practice Paper'}</h2>
-                <p className='text-lg font-semibold mt-2'>{generatedPaper.class || `Subject: ${subjects.find(s => s.id === selectedSubject)?.name}`}</p>
+                <p className='text-lg font-semibold mt-2'>{generatedPaper.class || ''}</p>
               </div>
 
               {generatedPaper.sections?.map((section: any, idx: number) => (
