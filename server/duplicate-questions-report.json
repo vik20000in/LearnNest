@@ -1,0 +1,253 @@
+{
+  "timestamp": "2025-12-16T04:21:27.900Z",
+  "totalPapers": 304,
+  "papersWithDuplicates": 10,
+  "details": [
+    {
+      "paperId": 8,
+      "title": "Annual Examination - English Language",
+      "variantLabel": "N/A",
+      "duplicates": [
+        {
+          "question": "Q3: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            7,
+            12
+          ]
+        },
+        {
+          "question": "Q4: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            8,
+            13
+          ]
+        },
+        {
+          "question": "Q5: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            9,
+            14
+          ]
+        }
+      ]
+    },
+    {
+      "paperId": 17,
+      "title": "Annual Examination - English Language",
+      "variantLabel": "N/A",
+      "duplicates": [
+        {
+          "question": "Q3: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            7,
+            12
+          ]
+        },
+        {
+          "question": "Q4: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            8,
+            13
+          ]
+        },
+        {
+          "question": "Q5: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            9,
+            14
+          ]
+        }
+      ]
+    },
+    {
+      "paperId": 340,
+      "title": "Practice Paper - Chotoder Sabuj Pata",
+      "variantLabel": "N/A",
+      "duplicates": [
+        {
+          "question": "Q4: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            3,
+            8
+          ]
+        },
+        {
+          "question": "Q5: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            4,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "paperId": 341,
+      "title": "Practice Paper - Pache Loke Kichu Bole",
+      "variantLabel": "N/A",
+      "duplicates": [
+        {
+          "question": "Q4: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            3,
+            8
+          ]
+        },
+        {
+          "question": "Q5: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            4,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "paperId": 342,
+      "title": "Practice Paper - Golper Rongmoshal",
+      "variantLabel": "N/A",
+      "duplicates": [
+        {
+          "question": "Q4: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            3,
+            8
+          ]
+        },
+        {
+          "question": "Q5: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            4,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "paperId": 343,
+      "title": "Practice Paper - Bhasha Prosongo",
+      "variantLabel": "N/A",
+      "duplicates": [
+        {
+          "question": "Q4: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            3,
+            8
+          ]
+        },
+        {
+          "question": "Q5: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            4,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "paperId": 344,
+      "title": "Practice Paper - Introduction",
+      "variantLabel": "N/A",
+      "duplicates": [
+        {
+          "question": "Q4: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            3,
+            8
+          ]
+        },
+        {
+          "question": "Q5: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            4,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "paperId": 345,
+      "title": "Practice Paper - Third Language Introduction",
+      "variantLabel": "N/A",
+      "duplicates": [
+        {
+          "question": "Q4: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            3,
+            8
+          ]
+        },
+        {
+          "question": "Q5: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            4,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "paperId": 346,
+      "title": "Practice Paper - Grammar - Ref and Seasons",
+      "variantLabel": "N/A",
+      "duplicates": [
+        {
+          "question": "Q4: Topic question about Grammar",
+          "count": 2,
+          "indices": [
+            3,
+            8
+          ]
+        },
+        {
+          "question": "Q5: Topic question about Grammar",
+          "count": 2,
+          "indices": [
+            4,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "paperId": 350,
+      "title": "Practice Paper - Barshai Durgati",
+      "variantLabel": "N/A",
+      "duplicates": [
+        {
+          "question": "Q4: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            3,
+            8
+          ]
+        },
+        {
+          "question": "Q5: Topic question about Chapter",
+          "count": 2,
+          "indices": [
+            4,
+            9
+          ]
+        }
+      ]
+    }
+  ]
+}
