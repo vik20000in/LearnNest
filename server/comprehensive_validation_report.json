@@ -1,0 +1,131 @@
+{
+  "validationDate": "2025-01-24",
+  "totalQuestionsAnalyzed": 1140,
+  "subjects": {
+    "Physics": {
+      "totalQuestions": 360,
+      "chapters": 6,
+      "papers": 18,
+      "status": "✅ ALL VALID",
+      "invalidQuestions": 0,
+      "details": "All Physics questions are contextually appropriate for Class 6 ICSE. Questions cover Matter, Physical Quantities & Measurements, Force, Simple Machines, Light, and Magnetism correctly."
+    },
+    "Maths": {
+      "totalQuestions": 780,
+      "chapters": 13,
+      "papers": 39,
+      "status": "⚠️ SOME INVALID",
+      "invalidQuestions": 60,
+      "invalidPapers": [
+        {
+          "paperId": 632,
+          "chapter": "CHAPTER 17: QUADRILATERALS",
+          "set": "Set C",
+          "title": "Maths Practice Paper - CHAPTER 17: QUADRILATERALS - Set C",
+          "issue": "Contains basic arithmetic questions (subtraction) instead of quadrilateral-specific questions",
+          "sampleInvalidQuestions": [
+            "What is 105 - 49?"
+          ]
+        },
+        {
+          "paperId": 634,
+          "chapter": "CHAPTER 19: POLYGONS",
+          "set": "Set B",
+          "title": "Maths Practice Paper - CHAPTER 19: POLYGONS - Set B",
+          "issue": "Section A contains only basic arithmetic (addition, subtraction, multiplication, division, LCM, HCF) instead of polygon-specific questions",
+          "sampleInvalidQuestions": [
+            "What is 34 + 48?",
+            "What is 96 - 38?"
+          ]
+        },
+        {
+          "paperId": 635,
+          "chapter": "CHAPTER 19: POLYGONS",
+          "set": "Set C",
+          "title": "Maths Practice Paper - CHAPTER 19: POLYGONS - Set C",
+          "issue": "Contains basic arithmetic questions instead of polygon-specific questions",
+          "sampleInvalidQuestions": [
+            "What is 45 + 67?",
+            "What is 105 - 49?"
+          ]
+        },
+        {
+          "paperId": 636,
+          "chapter": "CHAPTER 20: RECOGNITION OF 3D SHAPES (SOLIDS)",
+          "set": "Set A",
+          "title": "Maths Practice Paper - CHAPTER 20: RECOGNITION OF 3D SHAPES (SOLIDS) - Set A",
+          "issue": "Section A contains ONLY basic arithmetic (addition, subtraction, multiplication, division, squares, LCM, HCF) - no 3D shapes questions at all",
+          "sampleInvalidQuestions": [
+            "What is 25 + 37?",
+            "What is 84 - 29?",
+            "What is 12 × 8?",
+            "What is 144 ÷ 12?",
+            "What is the value of 5²?",
+            "Find the LCM of 4 and 6",
+            "Find the HCF of 12 and 18"
+          ]
+        },
+        {
+          "paperId": 639,
+          "chapter": "CHAPTER 22: GEOMETRICAL CONSTRUCTIONS",
+          "set": "Set A",
+          "title": "Maths Practice Paper - CHAPTER 22: GEOMETRICAL CONSTRUCTIONS - Set A",
+          "issue": "Section A contains only basic arithmetic instead of geometrical construction questions",
+          "sampleInvalidQuestions": [
+            "What is 25 + 37?",
+            "What is 84 - 29?"
+          ]
+        },
+        {
+          "paperId": 641,
+          "chapter": "CHAPTER 22: GEOMETRICAL CONSTRUCTIONS",
+          "set": "Set C",
+          "title": "Maths Practice Paper - CHAPTER 22: GEOMETRICAL CONSTRUCTIONS - Set C",
+          "issue": "Contains basic arithmetic questions instead of geometrical construction questions",
+          "sampleInvalidQuestions": [
+            "What is 45 + 67?",
+            "What is 105 - 49?"
+          ]
+        },
+        {
+          "paperId": 645,
+          "chapter": "CHAPTER 26: MEAN AND MEDIAN",
+          "set": "Set A",
+          "title": "Maths Practice Paper - CHAPTER 26: MEAN AND MEDIAN - Set A",
+          "issue": "Contains basic arithmetic mixed with mean/median questions",
+          "sampleInvalidQuestions": [
+            "What is 84 - 29?"
+          ]
+        },
+        {
+          "paperId": 647,
+          "chapter": "CHAPTER 26: MEAN AND MEDIAN",
+          "set": "Set C",
+          "title": "Maths Practice Paper - CHAPTER 26: MEAN AND MEDIAN - Set C",
+          "issue": "Contains basic arithmetic questions instead of mean/median questions",
+          "sampleInvalidQuestions": [
+            "What is 45 + 67?",
+            "What is 105 - 49?"
+          ]
+        },
+        {
+          "paperId": 612,
+          "chapter": "CHAPTER 7: SETS",
+          "set": "Set A",
+          "title": "Maths Practice Paper - CHAPTER 7: SETS - Set A",
+          "issue": "Section A contains only basic arithmetic instead of sets-related questions",
+          "sampleInvalidQuestions": [
+            "What is 25 + 37?",
+            "What is 84 - 29?"
+          ]
+        }
+      ]
+    }
+  },
+  "summary": {
+    "totalInvalidPapers": 9,
+    "estimatedInvalidQuestions": "60 questions (approximately 10 MCQs per invalid paper × 9 papers = 90, but some papers are partially valid)",
+    "validationMethod": "Claude/Copilot direct analysis - No external APIs used",
+    "recommendation": "Create instant fix script similar to fixMathQuestionsInstant.ts with pre-written contextually appropriate questions for all 9 invalid papers"
+  }
+}

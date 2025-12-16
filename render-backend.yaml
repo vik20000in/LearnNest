@@ -1,0 +1,25 @@
+# Render configuration for backend
+{
+  "services": [
+    {
+      "type": "web",
+      "name": "learnnest-backend",
+      "runtime": "node",
+      "plan": "free",
+      "region": "oregon",
+      "buildCommand": "cd server && npm install && npm run build",
+      "startCommand": "cd server && npm start",
+      "healthCheckPath": "/api/health",
+      "envVars": [
+        {
+          "key": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "key": "PORT",
+          "value": "10000"
+        }
+      ]
+    }
+  ]
+}

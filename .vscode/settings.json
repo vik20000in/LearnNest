@@ -1,0 +1,7 @@
+{
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "typescript.validate.enable": true,
+  "files.exclude": {},
+  "search.exclude": {},
+  "typescript.tsdk": "node_modules/typescript/lib"
+}

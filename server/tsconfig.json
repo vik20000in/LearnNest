@@ -8,5 +8,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "exclude": [
+    "src/scripts/fixBiology*.ts",
+    "src/scripts/fixAllRemainingBiology.ts",
+    "src/scripts/fixChemistrySample.ts"
+  ]
 }
