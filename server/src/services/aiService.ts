@@ -7,7 +7,7 @@ interface AIConfig {
 
 // Default configuration - Ollama is free and runs locally, no API key needed
 const config: AIConfig = {
-    model: process.env.AI_MODEL || 'llama3.2',  // Default to llama3.2 (most common)
+    model: process.env.AI_MODEL || 'mistral',  // Default to mistral
     baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
 };
 
