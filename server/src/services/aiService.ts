@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { HfInference } from '@huggingface/inference';
 
 interface AIConfig {
     provider: 'huggingface' | 'ollama';
@@ -32,33 +33,21 @@ const generateHuggingFace = async (prompt: string): Promise<string> => {
         throw new Error('HuggingFace API Key is missing');
     }
     
-    const model = config.model || 'mistralai/Mistral-7B-Instruct-v0.2';
-    const url = `https://api-inference.huggingface.co/models/${model}`;
+    const hf = new HfInference(config.apiKey);
+    const model = config.model || 'mistralai/Mistral-7B-Instruct-v0.3';
 
     try {
-        const response = await axios.post(url, { 
+        const response = await hf.textGeneration({
+            model: model,
             inputs: prompt,
             parameters: {
                 max_new_tokens: 1024,
                 temperature: 0.7,
                 return_full_text: false
             }
-        }, {
-            headers: {
-                'Authorization': `Bearer ${config.apiKey}`,
-                'Content-Type': 'application/json'
-            }
         });
 
-        const result = response.data;
-        // HuggingFace Inference API returns an array of objects with 'generated_text'
-        if (Array.isArray(result) && result.length > 0) {
-            return result[0].generated_text;
-        } else if (typeof result === 'object' && result.generated_text) {
-             return result.generated_text;
-        }
-        
-        return JSON.stringify(result);
+        return response.generated_text;
 
     } catch (error) {
         console.error('AI Generation Error (HF):', error);

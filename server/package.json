@@ -9,9 +9,12 @@
     "build": "tsc",
     "seed:annual": "ts-node src/scripts/seedAnnualPapers.ts",
     "seed:chapters": "ts-node src/scripts/seedChapterQuestions.ts",
-    "generate:annual": "ts-node src/scripts/generateAnnualPapers.ts"
+    "check:data": "ts-node src/scripts/checkAndGenerateData.ts",
+    "generate:annual": "ts-node src/scripts/generateAnnualPapers.ts",
+    "generate:flashcards": "ts-node src/scripts/generateAllFlashcards.ts"
   },
   "dependencies": {
+    "@huggingface/inference": "^4.13.5",
     "axios": "^1.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
