@@ -226,8 +226,19 @@ The `validate:math` script uses AI to ensure question quality:
    - Install for Windows/Mac/Linux
    
 2. **Pull a model** (one-time setup)
+   Choose one of these models:
    ```bash
-   ollama pull mistral
+   # Option 1: Llama 3.2 (Recommended - Fast and accurate)
+   ollama pull llama3.2
+   
+   # Option 2: Phi 3 (Smaller, faster, good for older computers)
+   ollama pull phi3
+   
+   # Option 3: Gemma 2 (Google's model, very capable)
+   ollama pull gemma2
+   
+   # Option 4: Qwen 2.5 (Alibaba's model, excellent reasoning)
+   ollama pull qwen2.5
    ```
    
 3. **Verify it's running**
@@ -237,7 +248,7 @@ The `validate:math` script uses AI to ensure question quality:
 
 4. **(Optional) Configure in `.env`**
    ```env
-   AI_MODEL=mistral
+   AI_MODEL=llama3.2
    OLLAMA_BASE_URL=http://localhost:11434
    ```
 

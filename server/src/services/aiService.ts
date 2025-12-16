@@ -7,7 +7,7 @@ interface AIConfig {
 
 // Default configuration - Ollama is free and runs locally, no API key needed
 const config: AIConfig = {
-    model: process.env.AI_MODEL || 'mistral',
+    model: process.env.AI_MODEL || 'llama3.2',  // Default to llama3.2 (most common)
     baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
 };
 
@@ -47,7 +47,8 @@ const generateOllama = async (prompt: string): Promise<string> => {
 Please install and start Ollama:
 1. Download from: https://ollama.ai/download
 2. Install and run Ollama
-3. Pull the model: ollama pull ${config.model}
+3. Pull a model: ollama pull llama3.2
+   (Or: phi3, gemma2, qwen2.5, mistral)
 4. Verify it's running: ollama list
 
 Then run this script again.

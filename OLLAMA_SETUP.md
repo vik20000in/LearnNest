@@ -24,15 +24,35 @@ curl -fsSL https://ollama.ai/install.sh | sh
 
 ### Step 2: Pull a Model
 
-Open a terminal and run:
+Open a terminal and choose one model to download:
+
+**Recommended Options:**
+
 ```bash
+# BEST CHOICE - Llama 3.2 (3GB, fast, very accurate)
+ollama pull llama3.2
+```
+
+**Alternative Models:**
+
+```bash
+# Phi 3 - Smaller model, great for older computers (2GB)
+ollama pull phi3
+
+# Gemma 2 - Google's model, excellent quality (5GB)
+ollama pull gemma2
+
+# Qwen 2.5 - Strong reasoning abilities (4GB)
+ollama pull qwen2.5
+
+# Mistral - If available in your region (4GB)
 ollama pull mistral
 ```
 
-This downloads the Mistral-7B model (~4GB). Other options:
-- `ollama pull llama3` - Meta's LLaMA 3 (larger, more powerful)
-- `ollama pull phi` - Microsoft's Phi (smaller, faster)
-- `ollama pull codellama` - Specialized for code
+**Which to choose?**
+- 💻 Older computer/limited RAM → `phi3`
+- ⚡ Best balance → `llama3.2` (recommended)
+- 🎯 Maximum quality → `gemma2`
 
 ### Step 3: Verify Installation
 
@@ -45,7 +65,8 @@ You should see your downloaded model(s).
 ### Step 4: Test It
 
 ```bash
-ollama run mistral "What is 2+2?"
+# Replace 'llama3.2' with whatever model you installed
+ollama run llama3.2 "What is 2+2?"
 ```
 
 If you get a response, you're all set! ✅
@@ -61,15 +82,20 @@ npm run validate:math
 
 The script will automatically:
 - Connect to Ollama (localhost:11434)
-- Use the mistral model (or whatever you configured)
+- Use your installed model (llama3.2, phi3, gemma2, or qwen2.5)
 - Validate all Math questions
 - Regenerate invalid ones
 
 ## Optional: Configure Model
 
-Create/edit `server/.env`:
+Create/edit `server/.env` to specify which model to use:
 ```env
-AI_MODEL=mistral
+# Use whichever model you installed
+AI_MODEL=llama3.2
+# Or: AI_MODEL=phi3
+# Or: AI_MODEL=gemma2
+# Or: AI_MODEL=qwen2.5
+
 OLLAMA_BASE_URL=http://localhost:11434
 ```
 
@@ -80,14 +106,16 @@ OLLAMA_BASE_URL=http://localhost:11434
 - Check if it's accessible: Open http://localhost:11434 in browser
 
 ### "Model not found"
-- Pull the model: `ollama pull mistral`
+- Pull a model: `ollama pull llama3.2`
 - Verify: `ollama list`
+- Make sure your `.env` AI_MODEL matches the model name from `ollama list`
 
 ### Slow generation
-- Mistral is fast (~4GB). If too slow, try:
-  - `ollama pull phi` (smaller model)
+- Try a smaller model:
+  - `ollama pull phi3` (fastest, ~2GB)
   - Close other heavy applications
   - Consider upgrading RAM (8GB+ recommended)
+- Larger models (gemma2) are slower but more accurate
 
 ## Why Ollama?
 
