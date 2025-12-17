@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Download, Loader2, FileText, Layout, FileDown, Key, FileQuestion } from 'lucide-react';
+import { Download, Loader2, Layout, FileDown, Key, FileQuestion } from 'lucide-react';
 
 interface Subject {
   id: number;
