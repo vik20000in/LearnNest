@@ -27,8 +27,14 @@ initDatabase().then(async () => {
     } catch (error) {
         console.error('Seeding failed:', error);
     }
+
+    // Start server only after DB is ready
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
 }).catch(err => {
     console.error('Database initialization failed:', err);
+    process.exit(1);
 });
 
 // Routes
@@ -36,8 +42,4 @@ app.use('/api', apiRoutes);
 
 app.get('/', (req, res) => {
     res.send('LearnNest API is running');
-});
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
 });
