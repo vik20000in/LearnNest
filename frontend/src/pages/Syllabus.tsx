@@ -57,7 +57,7 @@ const Syllabus = () => {
 
       <div className="grid md:grid-cols-4 gap-6">
         <div className="col-span-1 space-y-2">
-          <h2 className="text-xl font-semibold mb-4">Subjects</h2>
+          <h2 className="text-xl font-semibold mb-4 text-text">Subjects</h2>
           {subjects.map(subject => (
             <button
               key={subject.id}
@@ -65,7 +65,7 @@ const Syllabus = () => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                 selectedSubject === subject.id 
                   ? 'bg-primary text-white' 
-                  : 'bg-white hover:bg-gray-50'
+                  : 'bg-surface text-text hover:bg-background'
               }`}
             >
               {subject.name}
@@ -77,36 +77,36 @@ const Syllabus = () => {
           {selectedSubject ? (
             <>
               <div className="space-y-4">
-                <h3 className="text-xl font-bold">Chapters</h3>
-                {chapters.length === 0 && <p className="text-gray-500">No chapters added yet.</p>}
+                <h3 className="text-xl font-bold text-text">Chapters</h3>
+                {chapters.length === 0 && <p className="text-text/60">No chapters added yet.</p>}
                 {chapters.map(chapter => (
                   <div key={chapter.id} className="card">
-                    <h4 className="font-bold text-lg">{chapter.name}</h4>
-                    <p className="text-gray-600 mt-2 whitespace-pre-wrap">{chapter.syllabus}</p>
+                    <h4 className="font-bold text-lg text-text">{chapter.name}</h4>
+                    <p className="text-text/80 mt-2 whitespace-pre-wrap">{chapter.syllabus}</p>
                     <FlashcardViewer chapterId={chapter.id} />
                   </div>
                 ))}
               </div>
 
               <div className="card">
-                <h3 className="text-xl font-bold mb-4">Add New Chapter</h3>
+                <h3 className="text-xl font-bold mb-4 text-text">Add New Chapter</h3>
                 <form onSubmit={handleAddChapter} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Chapter Name</label>
+                    <label className="block text-sm font-medium mb-1 text-text">Chapter Name</label>
                     <input
                       type="text"
                       value={newChapter.name}
                       onChange={e => setNewChapter({ ...newChapter, name: e.target.value })}
-                      className="w-full p-2 border rounded-md"
+                      className="w-full p-2 border rounded-md bg-background text-text"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Syllabus Details</label>
+                    <label className="block text-sm font-medium mb-1 text-text">Syllabus Details</label>
                     <textarea
                       value={newChapter.syllabus}
                       onChange={e => setNewChapter({ ...newChapter, syllabus: e.target.value })}
-                      className="w-full p-2 border rounded-md h-24"
+                      className="w-full p-2 border rounded-md h-24 bg-background text-text"
                       placeholder="Enter topics covered in this chapter..."
                     />
                   </div>
@@ -115,8 +115,8 @@ const Syllabus = () => {
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center h-64 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300">
-              <p className="text-gray-500 text-lg">Select a subject to view syllabus</p>
+            <div className="flex items-center justify-center h-64 bg-background rounded-xl border-2 border-dashed border-text/20">
+              <p className="text-text/60 text-lg">Select a subject to view syllabus</p>
             </div>
           )}
         </div>

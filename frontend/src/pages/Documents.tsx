@@ -64,21 +64,21 @@ const Documents = () => {
           </h2>
           <form onSubmit={handleUpload} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
+              <label className="block text-sm font-medium mb-1 text-text">Title</label>
               <input
                 type="text"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                className="w-full p-2 border rounded-md"
+                className="w-full p-2 border rounded-md bg-background text-text"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Type</label>
+              <label className="block text-sm font-medium mb-1 text-text">Type</label>
               <select
                 value={type}
                 onChange={e => setType(e.target.value)}
-                className="w-full p-2 border rounded-md"
+                className="w-full p-2 border rounded-md bg-background text-text"
               >
                 <option value="homework">Homework</option>
                 <option value="circular">Circular</option>
@@ -87,11 +87,11 @@ const Documents = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">File</label>
+              <label className="block text-sm font-medium mb-1 text-text">File</label>
               <input
                 type="file"
                 onChange={e => setFile(e.target.files ? e.target.files[0] : null)}
-                className="w-full"
+                className="w-full text-text"
                 required
               />
             </div>
@@ -100,21 +100,21 @@ const Documents = () => {
         </div>
 
         <div className="md:col-span-2 space-y-4">
-          <h2 className="text-xl font-bold mb-4">Your Documents</h2>
+          <h2 className="text-xl font-bold mb-4 text-text">Your Documents</h2>
           <div className="grid gap-4">
             {documents.map(doc => (
-              <div key={doc.id} className="bg-white p-4 rounded-lg shadow flex items-center justify-between">
+              <div key={doc.id} className="bg-surface p-4 rounded-lg shadow flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`p-3 rounded-full ${
                     doc.type === 'homework' ? 'bg-blue-100 text-blue-600' :
                     doc.type === 'circular' ? 'bg-yellow-100 text-yellow-600' :
-                    'bg-gray-100 text-gray-600'
+                    'bg-background text-text/80'
                   }`}>
                     <FileText className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold">{doc.title}</h3>
-                    <p className="text-sm text-gray-500 capitalize">{doc.type} • {new Date(doc.created_at).toLocaleDateString()}</p>
+                    <h3 className="font-bold text-text">{doc.title}</h3>
+                    <p className="text-sm text-text/60 capitalize">{doc.type} • {new Date(doc.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -122,13 +122,13 @@ const Documents = () => {
                     href={`http://localhost:3000${doc.file_path}`} 
                     target="_blank" 
                     rel="noreferrer"
-                    className="btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm"
+                    className="btn bg-background hover:bg-background/80 text-text text-sm"
                   >
                     View
                   </a>
                   <button 
                     onClick={() => handleDelete(doc.id)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-full"
+                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-full"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -136,7 +136,7 @@ const Documents = () => {
               </div>
             ))}
             {documents.length === 0 && (
-              <p className="text-center text-gray-500 py-8">No documents uploaded yet.</p>
+              <p className="text-center text-text/60 py-8">No documents uploaded yet.</p>
             )}
           </div>
         </div>

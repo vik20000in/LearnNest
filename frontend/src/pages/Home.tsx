@@ -46,12 +46,12 @@ const Home = () => {
     <div className="space-y-12 relative">
       {showImport && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full">
-            <h3 className="text-2xl font-bold mb-4">Import from Local Folder</h3>
-            <p className="text-gray-600 mb-4 text-sm">
+          <div className="bg-surface p-8 rounded-xl shadow-2xl max-w-md w-full">
+            <h3 className="text-2xl font-bold mb-4 text-text">Import from Local Folder</h3>
+            <p className="text-text/80 mb-4 text-sm">
               Enter the local path to your folder with PDFs.
               <br/>
-              <span className="text-xs text-gray-400">Example: C:\Users\Name\Documents\School</span>
+              <span className="text-xs text-text/60">Example: C:\Users\Name\Documents\School</span>
             </p>
             <form onSubmit={handleImport} className="space-y-4">
               <input 
@@ -59,14 +59,14 @@ const Home = () => {
                 value={folderPath}
                 onChange={e => setFolderPath(e.target.value)}
                 placeholder="Paste folder path here..."
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded bg-background text-text"
                 required
               />
               <div className="flex justify-end gap-2">
                 <button 
                   type="button" 
                   onClick={() => setShowImport(false)}
-                  className="btn bg-gray-200 hover:bg-gray-300"
+                  className="btn bg-gray-200 hover:bg-gray-300 text-gray-800"
                 >
                   Cancel
                 </button>
@@ -82,40 +82,40 @@ const Home = () => {
 
       {showDriveSync && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full">
-            <h3 className="text-2xl font-bold mb-4">Sync from Google Drive</h3>
-            <p className="text-gray-600 mb-4 text-sm">
+          <div className="bg-surface p-8 rounded-xl shadow-2xl max-w-md w-full">
+            <h3 className="text-2xl font-bold mb-4 text-text">Sync from Google Drive</h3>
+            <p className="text-text/80 mb-4 text-sm">
               Enter your Google API Key to fetch documents from the specified Drive folder.
             </p>
             <form onSubmit={handleDriveSync} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">Folder ID</label>
+                <label className="block text-xs font-bold text-text/60 mb-1">Folder ID</label>
                 <input 
                     type="text" 
                     value={driveFolderId}
                     onChange={e => setDriveFolderId(e.target.value)}
-                    className="w-full p-2 border rounded bg-gray-50"
+                    className="w-full p-2 border rounded bg-background text-text"
                     required
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">Google API Key</label>
+                <label className="block text-xs font-bold text-text/60 mb-1">Google API Key</label>
                 <input 
                     type="text" 
                     value={apiKey}
                     onChange={e => setApiKey(e.target.value)}
                     placeholder="Enter your Google API Key"
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded bg-background text-text"
                     required
                 />
-                <p className="text-xs text-gray-400 mt-1">Required to access Google Drive API.</p>
+                <p className="text-xs text-text/40 mt-1">Required to access Google Drive API.</p>
               </div>
               
               <div className="flex justify-end gap-2">
                 <button 
                   type="button" 
                   onClick={() => setShowDriveSync(false)}
-                  className="btn bg-gray-200 hover:bg-gray-300"
+                  className="btn bg-gray-200 hover:bg-gray-300 text-gray-800"
                 >
                   Cancel
                 </button>
@@ -131,57 +131,57 @@ const Home = () => {
 
       <div className="text-center space-y-4">
         <h1 className="text-5xl font-bold text-primary">Welcome to LearnNest</h1>
-        <p className="text-xl text-gray-600">Your personal study companion for Class 6 ICSE</p>
+        <p className="text-xl text-text/80">Your personal study companion for Class 6 ICSE</p>
       </div>
 
       <div className="grid md:grid-cols-4 gap-6">
-        <Link to="/generate" className="card hover:shadow-xl transition-shadow group">
+        <Link to="/generate" className="card hover:shadow-xl transition-shadow group bg-surface">
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="p-4 bg-indigo-100 rounded-full group-hover:bg-indigo-200 transition-colors">
+            <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
               <PenTool className="w-12 h-12 text-primary" />
             </div>
-            <h2 className="text-xl font-bold">Generate Questions</h2>
-            <p className="text-gray-600 text-sm">Create custom question papers with AI.</p>
+            <h2 className="text-xl font-bold text-text">Generate Questions</h2>
+            <p className="text-text/60 text-sm">Create custom question papers with AI.</p>
           </div>
         </Link>
 
-        <Link to="/documents" className="card hover:shadow-xl transition-shadow group">
+        <Link to="/documents" className="card hover:shadow-xl transition-shadow group bg-surface">
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="p-4 bg-emerald-100 rounded-full group-hover:bg-emerald-200 transition-colors">
+            <div className="p-4 bg-secondary/10 rounded-full group-hover:bg-secondary/20 transition-colors">
               <FileText className="w-12 h-12 text-secondary" />
             </div>
-            <h2 className="text-xl font-bold">Document Vault</h2>
-            <p className="text-gray-600 text-sm">Store and organize your homework & notices.</p>
+            <h2 className="text-xl font-bold text-text">Document Vault</h2>
+            <p className="text-text/60 text-sm">Store and organize your homework & notices.</p>
           </div>
         </Link>
 
-        <Link to="/syllabus" className="card hover:shadow-xl transition-shadow group">
+        <Link to="/syllabus" className="card hover:shadow-xl transition-shadow group bg-surface">
           <div className="flex flex-col items-center text-center space-y-4">
             <div className="p-4 bg-purple-100 rounded-full group-hover:bg-purple-200 transition-colors">
               <BookOpen className="w-12 h-12 text-purple-600" />
             </div>
-            <h2 className="text-xl font-bold">Syllabus Manager</h2>
-            <p className="text-gray-600 text-sm">Keep track of what you need to study.</p>
+            <h2 className="text-xl font-bold text-text">Syllabus Manager</h2>
+            <p className="text-text/60 text-sm">Keep track of what you need to study.</p>
           </div>
         </Link>
 
-        <button onClick={() => setShowDriveSync(true)} className="card hover:shadow-xl transition-shadow group text-left">
+        <button onClick={() => setShowDriveSync(true)} className="card hover:shadow-xl transition-shadow group text-left bg-surface">
           <div className="flex flex-col items-center text-center space-y-4">
             <div className="p-4 bg-blue-100 rounded-full group-hover:bg-blue-200 transition-colors">
               <DownloadCloud className="w-12 h-12 text-blue-600" />
             </div>
-            <h2 className="text-xl font-bold">Sync Drive</h2>
-            <p className="text-gray-600 text-sm">Download documents from Google Drive.</p>
+            <h2 className="text-xl font-bold text-text">Sync Drive</h2>
+            <p className="text-text/60 text-sm">Download documents from Google Drive.</p>
           </div>
         </button>
 
-        <button onClick={() => setShowImport(true)} className="card hover:shadow-xl transition-shadow group text-left">
+        <button onClick={() => setShowImport(true)} className="card hover:shadow-xl transition-shadow group text-left bg-surface">
           <div className="flex flex-col items-center text-center space-y-4">
             <div className="p-4 bg-orange-100 rounded-full group-hover:bg-orange-200 transition-colors">
               <FolderInput className="w-12 h-12 text-orange-600" />
             </div>
-            <h2 className="text-xl font-bold">Import Folder</h2>
-            <p className="text-gray-600 text-sm">Bulk import documents from Google Drive / Local.</p>
+            <h2 className="text-xl font-bold text-text">Import Folder</h2>
+            <p className="text-text/60 text-sm">Bulk import documents from Google Drive / Local.</p>
           </div>
         </button>
       </div>

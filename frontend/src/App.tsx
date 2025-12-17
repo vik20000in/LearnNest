@@ -3,12 +3,13 @@ import Home from './pages/Home';
 import QuestionGenerator from './pages/QuestionGenerator';
 import Documents from './pages/Documents';
 import Syllabus from './pages/Syllabus';
+import ThemeSelector from './components/ThemeSelector';
 import { BookOpen, FileText, FileQuestion, Home as HomeIcon } from 'lucide-react';
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <nav className="bg-white shadow-lg">
+    <div className="min-h-screen flex flex-col bg-background text-text transition-colors duration-300">
+      <nav className="bg-surface shadow-lg transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -18,17 +19,23 @@ function App() {
               </Link>
             </div>
             <div className="flex items-center space-x-8">
-              <Link to="/" className="flex items-center space-x-1 text-gray-600 hover:text-primary">
+              <Link to="/" className="flex items-center space-x-1 text-text hover:text-primary transition-colors">
                 <HomeIcon className="w-5 h-5" />
                 <span>Home</span>
               </Link>
-              <Link to="/generate" className="flex items-center space-x-1 text-gray-600 hover:text-primary">
+              <Link to="/generate" className="flex items-center space-x-1 text-text hover:text-primary transition-colors">
                 <FileQuestion className="w-5 h-5" />
                 <span>Practice Papers</span>
               </Link>
-              <Link to="/documents" className="flex items-center space-x-1 text-gray-600 hover:text-primary">
+              <Link to="/documents" className="flex items-center space-x-1 text-text hover:text-primary transition-colors">
                 <FileText className="w-5 h-5" />
                 <span>Documents</span>
+              </Link>
+              <ThemeSelector />
+            </div>
+          </div>
+        </div>
+      </nav>                <span>Documents</span>
               </Link>
               <Link to="/syllabus" className="flex items-center space-x-1 text-gray-600 hover:text-primary">
                 <BookOpen className="w-5 h-5" />

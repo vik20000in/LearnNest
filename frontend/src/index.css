@@ -2,8 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Default (Light) Theme Variables */
+  --color-primary: 79 70 229; /* Indigo 600 */
+  --color-secondary: 16 185 129; /* Emerald 500 */
+  --color-background: 243 244 246; /* Gray 100 */
+  --color-surface: 255 255 255; /* White */
+  --color-text: 31 41 55; /* Gray 800 */
+}
+
+.theme-light {
+  --color-primary: 79 70 229;
+  --color-secondary: 16 185 129;
+  --color-background: 243 244 246;
+  --color-surface: 255 255 255;
+  --color-text: 31 41 55;
+}
+
+.theme-dark {
+  --color-primary: 99 102 241; /* Indigo 500 */
+  --color-secondary: 52 211 153; /* Emerald 400 */
+  --color-background: 17 24 39; /* Gray 900 */
+  --color-surface: 31 41 55; /* Gray 800 */
+  --color-text: 243 244 246; /* Gray 100 */
+}
+
+.theme-nature {
+  --color-primary: 21 128 61; /* Green 700 */
+  --color-secondary: 161 98 7; /* Yellow 700 */
+  --color-background: 254 252 232; /* Yellow 50 */
+  --color-surface: 255 255 255;
+  --color-text: 28 25 23; /* Stone 900 */
+}
+
+.theme-ocean {
+  --color-primary: 2 132 199; /* Sky 600 */
+  --color-secondary: 14 165 233; /* Sky 500 */
+  --color-background: 240 249 255; /* Sky 50 */
+  --color-surface: 255 255 255;
+  --color-text: 12 74 110; /* Sky 900 */
+}
+
+.theme-sunset {
+  --color-primary: 225 29 72; /* Rose 600 */
+  --color-secondary: 249 115 22; /* Orange 500 */
+  --color-background: 255 241 242; /* Rose 50 */
+  --color-surface: 255 255 255;
+  --color-text: 136 19 55; /* Rose 900 */
+}
+
 body {
-  @apply bg-background text-gray-800;
+  @apply bg-background text-text transition-colors duration-300;
 }
 
 .btn {
@@ -11,15 +60,15 @@ body {
 }
 
 .btn-primary {
-  @apply bg-primary text-white hover:bg-indigo-700;
+  @apply bg-primary text-white hover:opacity-90;
 }
 
 .btn-secondary {
-  @apply bg-secondary text-white hover:bg-emerald-700;
+  @apply bg-secondary text-white hover:opacity-90;
 }
 
 .card {
-  @apply bg-white p-6 rounded-xl shadow-md;
+  @apply bg-surface p-6 rounded-xl shadow-md;
 }
 
 /* Flashcard Flip Utilities */

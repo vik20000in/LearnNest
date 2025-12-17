@@ -129,9 +129,9 @@ const QuestionGenerator = () => {
                 </h2>
                 
                 <div>
-                  <label className='block font-bold mb-2 text-sm'>Filter by Subject</label>
+                  <label className='block font-bold mb-2 text-sm text-text'>Filter by Subject</label>
                   <select 
-                    className='w-full p-2 border rounded-md'
+                    className='w-full p-2 border rounded-md bg-background text-text'
                     onChange={e => setFilterSubject(Number(e.target.value) || null)}
                     value={filterSubject || ''}
                   >
@@ -141,7 +141,7 @@ const QuestionGenerator = () => {
                 </div>
 
                 <div>
-                  <label className='flex items-center gap-2 cursor-pointer font-bold text-sm'>
+                  <label className='flex items-center gap-2 cursor-pointer font-bold text-sm text-text'>
                     <input 
                       type='checkbox'
                       checked={showAnswers}
@@ -153,7 +153,7 @@ const QuestionGenerator = () => {
 
                 <div className='space-y-2 max-h-[600px] overflow-y-auto'>
                   {storedPapers.length === 0 ? (
-                    <div className='text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed'>
+                    <div className='text-center py-8 text-text/60 bg-background rounded-lg border border-dashed'>
                       <p>No papers found.</p>
                       <p className='text-xs mt-2'>Run the generation script on the server.</p>
                     </div>
@@ -184,13 +184,13 @@ const QuestionGenerator = () => {
                         
                         return (
                           <div key={subjectId} className='space-y-2'>
-                            <div className='font-bold text-sm text-gray-700 bg-gray-100 px-3 py-2 rounded-md'>
+                            <div className='font-bold text-sm text-text bg-background px-3 py-2 rounded-md'>
                               {subject?.name || `Subject ${subjectId}`}
                             </div>
                             
                             {Object.entries(papersByChapter).map(([chapterName, chapterPapers]) => (
                               <div key={chapterName} className='ml-2 space-y-1'>
-                                <div className='font-semibold text-xs text-gray-600 px-2 py-1'>
+                                <div className='font-semibold text-xs text-text/80 px-2 py-1'>
                                   📖 {chapterName}
                                 </div>
                                 
@@ -205,15 +205,15 @@ const QuestionGenerator = () => {
                                     <button
                                       key={paper.id}
                                       onClick={() => loadPaper(paper.id)}
-                                      className='w-full text-left p-2 ml-4 rounded-lg border hover:bg-blue-50 hover:border-blue-200 transition-colors group text-sm'
+                                      className='w-full text-left p-2 ml-4 rounded-lg border hover:bg-primary/5 hover:border-primary/20 transition-colors group text-sm'
                                     >
                                       <div className='flex items-center gap-2'>
                                         {paper.variant_label && (
-                                          <span className='px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded'>
+                                          <span className='px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded'>
                                             Set {paper.variant_label}
                                           </span>
                                         )}
-                                        <div className='text-xs text-gray-600 group-hover:text-blue-700'>
+                                        <div className='text-xs text-text/80 group-hover:text-primary'>
                                           {paper.variant_label ? `Set ${paper.variant_label} - ${chapterName}` : paper.title}
                                         </div>
                                       </div>
