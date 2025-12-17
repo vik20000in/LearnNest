@@ -39,10 +39,12 @@ export const initDatabase = async () => {
         CREATE TABLE IF NOT EXISTS question_papers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             subject_id INTEGER NOT NULL,
+            chapter_id INTEGER,
             title TEXT NOT NULL,
             content TEXT NOT NULL, -- JSON string
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (subject_id) REFERENCES subjects(id)
+            FOREIGN KEY (subject_id) REFERENCES subjects(id),
+            FOREIGN KEY (chapter_id) REFERENCES chapters(id)
         );
 
         CREATE TABLE IF NOT EXISTS flashcards (
@@ -58,6 +60,13 @@ export const initDatabase = async () => {
     const subjects = ['Maths', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'Computer'];
     for (const subject of subjects) {
         await db.run('INSERT OR IGNORE INTO subjects (name) VALUES (?)', subject);
+    }
+
+    // Migration: Add chapter_id to question_papers if it doesn't exist
+    try {
+        await db.exec('ALTER TABLE question_papers ADD COLUMN chapter_id INTEGER REFERENCES chapters(id)');
+    } catch (error) {
+        // Column likely already exists
     }
 
     return db;
