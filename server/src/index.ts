@@ -16,6 +16,7 @@ console.log(`[INFO] AI Provider: ${process.env.AI_PROVIDER || 'ollama'}`);
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Initialize Database and Seed Data
 initDatabase().then(async () => {
@@ -40,6 +41,7 @@ initDatabase().then(async () => {
 // Routes
 app.use('/api', apiRoutes);
 
-app.get('/', (req, res) => {
-    res.send('LearnNest API is running');
+// Serve React App for any other route
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
 });
