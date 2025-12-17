@@ -55,7 +55,7 @@ export const initDatabase = async () => {
     `);
 
     // Seed Subjects
-    const subjects = ['English', 'Maths', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'Computer'];
+    const subjects = ['Maths', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'Computer'];
     for (const subject of subjects) {
         await db.run('INSERT OR IGNORE INTO subjects (name) VALUES (?)', subject);
     }
