@@ -16,7 +16,8 @@
     "validate:math:report": "ts-node src/scripts/validateMathQuestionsReportOnly.ts",
     "fix:math": "ts-node src/scripts/fixInvalidMathQuestions.ts",
     "fix:math:instant": "ts-node src/scripts/fixMathQuestionsInstant.ts",
-    "fix:all:instant": "ts-node src/scripts/fixAllInvalidQuestionsInstant.ts"
+    "fix:all:instant": "ts-node src/scripts/fixAllInvalidQuestionsInstant.ts",
+    "seed:prod": "node dist/scripts/seedProduction.js"
   },
   "dependencies": {
     "@types/pdfkit": "^0.17.4",
