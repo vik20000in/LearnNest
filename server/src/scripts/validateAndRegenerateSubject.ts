@@ -327,7 +327,7 @@ function regenerateOffline(paper: any, chapterLabel: string, avoidTexts: string[
     title: paper.title,
     school: 'School Name',
     class: 'Class 6',
-    subject: subjectName,
+    subject: subjectName!,
     duration: '1 hour 30 minutes',
     totalMarks: 40,
     sections: [
