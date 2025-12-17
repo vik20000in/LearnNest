@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { initDatabase } from './db/database';
+import { seedProduction } from './scripts/seedProduction';
 import apiRoutes from './routes/api';
 
 dotenv.config();
@@ -16,9 +17,16 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Initialize Database
-initDatabase().then(() => {
+// Initialize Database and Seed Data
+initDatabase().then(async () => {
     console.log('Database initialized');
+    // Run seeder in production (or always, since it's idempotent)
+    try {
+        await seedProduction();
+        console.log('Database seeded successfully');
+    } catch (error) {
+        console.error('Seeding failed:', error);
+    }
 }).catch(err => {
     console.error('Database initialization failed:', err);
 });

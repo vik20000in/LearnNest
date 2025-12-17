@@ -662,4 +662,4 @@ async function seedProduction() {
     console.log("✅ Production Seeding Complete!");
 }
 
-seedProduction().catch(console.error);
+export { seedProduction };
