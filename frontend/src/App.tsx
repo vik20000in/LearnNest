@@ -31,16 +31,11 @@ function App() {
                 <FileText className="w-5 h-5" />
                 <span>Documents</span>
               </Link>
-              <ThemeSelector />
-            </div>
-          </div>
-        </div>
-      </nav>                <span>Documents</span>
-              </Link>
-              <Link to="/syllabus" className="flex items-center space-x-1 text-gray-600 hover:text-primary">
+              <Link to="/syllabus" className="flex items-center space-x-1 text-text hover:text-primary transition-colors">
                 <BookOpen className="w-5 h-5" />
                 <span>Syllabus</span>
               </Link>
+              <ThemeSelector />
             </div>
           </div>
         </div>
@@ -55,7 +50,7 @@ function App() {
         </Routes>
       </main>
 
-      <footer className="bg-gray-800 text-white py-6 mt-auto">
+      <footer className="bg-surface text-text/80 py-6 mt-auto border-t border-text/10 transition-colors duration-300">
         <div className="container mx-auto px-4 text-center">
           <p>© 2025 LearnNest. Built for ICSE Class 6.</p>
         </div>
